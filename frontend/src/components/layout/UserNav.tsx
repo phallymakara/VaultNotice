@@ -11,7 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Check, ChevronDown, ShieldCheck, User } from "lucide-react"
+import { Check, ShieldCheck, User } from "lucide-react"
 
 export function UserNav() {
   const { activePersona, setActivePersona, personas } = usePersona()
@@ -28,20 +28,14 @@ export function UserNav() {
       <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"
-          className="relative h-9 flex items-center gap-2.5 px-2 hover:bg-accent rounded-full border border-border transition-all duration-150 hover:scale-[1.01] active:scale-[0.98]"
+          className="relative h-8 w-8 rounded-full p-0 hover:opacity-85 transition-all duration-150 hover:scale-105 active:scale-95"
+          title={activePersona.name}
         >
-          <Avatar className="h-7 w-7 text-xs font-semibold">
+          <Avatar className="h-8 w-8 text-xs font-semibold">
             <AvatarFallback className="bg-primary/10 text-primary">
               {initials}
             </AvatarFallback>
           </Avatar>
-          <div className="hidden md:flex flex-col text-left">
-            <span className="text-xs font-semibold leading-none">{activePersona.name}</span>
-            <span className="text-[11px] text-muted-foreground leading-tight mt-0.5">
-              {activePersona.role}
-            </span>
-          </div>
-          <ChevronDown className="h-3.5 w-3.5 text-muted-foreground opacity-60 ml-0.5" />
         </Button>
       </DropdownMenuTrigger>
 
