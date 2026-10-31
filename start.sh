@@ -6,7 +6,7 @@
 
 set -e
 
-REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 cd "${REPO_ROOT}"
 
 echo "======================================================================"
@@ -47,10 +47,14 @@ echo "  ✓ Node & npm are installed ($(node --version), npm v$(npm --version))"
 
 # 2. Start PostgreSQL container
 echo "[2/5] Starting PostgreSQL database container..."
-docker compose up -d db
+if docker ps --format '{{.Names}}' | grep -q "^vaultnotice-db$"; then
+    echo "  ✓ Container vaultnotice-db is already running"
+else
+    docker compose -p vaultnotice up -d db
+fi
 
 echo "Waiting for PostgreSQL database container to become healthy..."
-until docker compose exec -T db pg_isready -U postgres -d vaultnotice > /dev/null 2>&1; do
+until docker compose -p vaultnotice exec -T db pg_isready -U postgres -d vaultnotice_db > /dev/null 2>&1; do
     sleep 1
 done
 echo "  ✓ PostgreSQL is healthy on localhost:5432"
