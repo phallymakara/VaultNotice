@@ -18,7 +18,6 @@ import { Textarea } from "@/components/ui/textarea"
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -139,9 +138,6 @@ export function PostAnnouncementDialog({
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl">Create Announcement</DialogTitle>
-          <DialogDescription>
-            Compose and publish an official announcement. Notices and attached files are accessible only to your selected recipients.
-          </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4 pt-2">

@@ -47,13 +47,9 @@ export function PeopleGroupPicker({
   return (
     <div className="space-y-2" ref={containerRef}>
       {/* Selected Recipients Badge List */}
-      <div className="flex flex-wrap items-center gap-1.5 min-h-[40px] p-2 bg-background rounded-md border border-input shadow-xs">
-        {selectedRecipients.length === 0 ? (
-          <span className="text-xs text-muted-foreground select-none px-1">
-            No recipients selected
-          </span>
-        ) : (
-          selectedRecipients.map((recipient) => (
+      {selectedRecipients.length > 0 && (
+        <div className="flex flex-wrap items-center gap-1.5 p-1.5 bg-background rounded-md border border-input shadow-xs animate-in fade-in-0 duration-150">
+          {selectedRecipients.map((recipient) => (
             <Badge
               key={recipient.id}
               variant="secondary"
@@ -72,16 +68,16 @@ export function PeopleGroupPicker({
                 <button
                   type="button"
                   onClick={() => handleRemove(recipient.id)}
-                  className="rounded-full hover:bg-muted-foreground/20 p-0.5 ml-0.5 transition-colors"
+                  className="rounded-full hover:bg-muted-foreground/20 p-0.5 ml-0.5 transition-colors cursor-pointer"
                 >
                   <X className="w-3 h-3" />
                   <span className="sr-only">Remove</span>
                 </button>
               )}
             </Badge>
-          ))
-        )}
-      </div>
+          ))}
+        </div>
+      )}
 
       {/* Search Input & Dropdown */}
       {!disabled && (
