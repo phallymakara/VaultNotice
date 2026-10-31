@@ -62,22 +62,6 @@ export function UserNav() {
               </p>
             </div>
           </div>
-
-          {activePersona.groups.length > 0 && (
-            <div className="mt-3 pt-2 border-t border-border/60">
-              <p className="text-[10px] font-medium text-muted-foreground mb-1">ASSIGNED GROUPS</p>
-              <div className="flex flex-wrap gap-1">
-                {activePersona.groups.map((group) => (
-                  <span
-                    key={group}
-                    className="text-[10px] bg-muted px-1.5 py-0.5 rounded text-muted-foreground font-medium"
-                  >
-                    {group}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
         </DropdownMenuLabel>
 
         <DropdownMenuSeparator />
