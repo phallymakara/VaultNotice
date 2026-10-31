@@ -57,7 +57,7 @@ export function PeopleGroupPicker({
             <Badge
               key={recipient.id}
               variant="secondary"
-              className="gap-1.5 py-1 px-2.5 text-xs font-normal border border-border"
+              className="gap-1.5 py-1 px-2.5 text-xs font-normal border border-border animate-in fade-in-0 zoom-in-95 duration-150"
             >
               {recipient.type === "GROUP" ? (
                 <Users className="w-3 h-3 text-muted-foreground" />
@@ -102,7 +102,7 @@ export function PeopleGroupPicker({
           </div>
 
           {isOpen && (
-            <div className="absolute top-full left-0 right-0 mt-1 max-h-56 overflow-y-auto bg-popover text-popover-foreground border border-border rounded-md shadow-md z-50 p-1 divide-y divide-border/50">
+            <div className="absolute top-full left-0 right-0 mt-1 max-h-56 overflow-y-auto bg-popover text-popover-foreground border border-border rounded-md shadow-md z-50 p-1 divide-y divide-border/50 animate-in fade-in-0 zoom-in-95 duration-150">
               {isLoading ? (
                 <div className="p-3 text-xs text-muted-foreground text-center">
                   Searching directory...

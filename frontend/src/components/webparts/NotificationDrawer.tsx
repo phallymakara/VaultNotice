@@ -74,7 +74,7 @@ export function NotificationDrawer({
             notifications.map((item) => (
               <div
                 key={item.id}
-                className="rounded-lg border border-border bg-card p-3.5 space-y-2.5 shadow-xs"
+                className="rounded-lg border border-border bg-card p-3.5 space-y-2.5 shadow-xs transition-all duration-150 hover:border-border/80 hover:shadow-xs"
               >
                 {/* Channel Header */}
                 <div className="flex items-center justify-between">

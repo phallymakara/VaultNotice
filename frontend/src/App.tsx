@@ -142,7 +142,10 @@ export default function App() {
       </header>
 
       {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <main
+        key={`${activeTab}-${activePersona.id}`}
+        className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 animate-fade-in"
+      >
         {activeTab === "announcements" && <AnnouncementsLibrary />}
         {activeTab === "templates" && isAdmin && <TemplateManager />}
         {activeTab === "audit" && isAdmin && <AuditLogViewer />}

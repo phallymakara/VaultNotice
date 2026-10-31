@@ -27,7 +27,7 @@ export function TemplateManager() {
           {templates.map((tpl) => (
             <div
               key={tpl.id}
-              className="p-4 rounded-lg border border-border bg-card shadow-xs space-y-3"
+              className="p-4 rounded-lg border border-border bg-card shadow-xs space-y-3 transition-all duration-200 hover:border-border/80 hover:shadow-xs"
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">

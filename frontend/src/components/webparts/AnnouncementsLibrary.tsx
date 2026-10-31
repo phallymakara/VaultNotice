@@ -156,7 +156,7 @@ export function AnnouncementsLibrary() {
                 <TableRow
                   key={item.id}
                   onClick={() => handleOpenFolder(item.id)}
-                  className="cursor-pointer transition-colors"
+                  className="cursor-pointer transition-all duration-150 hover:bg-muted/60 group"
                 >
                   <TableCell className="font-medium">
                     <div className="flex items-center space-x-2.5">

@@ -28,7 +28,7 @@ export function UserNav() {
       <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"
-          className="relative h-9 flex items-center gap-2.5 px-2 hover:bg-accent rounded-full border border-border"
+          className="relative h-9 flex items-center gap-2.5 px-2 hover:bg-accent rounded-full border border-border transition-all duration-150 hover:scale-[1.01] active:scale-[0.98]"
         >
           <Avatar className="h-7 w-7 text-xs font-semibold">
             <AvatarFallback className="bg-primary/10 text-primary">
