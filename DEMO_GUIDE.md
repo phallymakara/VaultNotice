@@ -214,3 +214,4 @@ You can switch personas at any moment using the **Persona Dropdown** in the top-
     uv run pytest -v
     ```
     All 13 tests should pass in under 1 second.
+
