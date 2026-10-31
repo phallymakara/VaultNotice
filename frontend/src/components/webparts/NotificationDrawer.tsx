@@ -41,10 +41,10 @@ export function NotificationDrawer({
       <SheetContent side="right" className="w-full sm:max-w-md overflow-y-auto">
         <SheetHeader className="pb-3 border-b">
           <SheetTitle className="text-base font-semibold">
-            Simulated Notification Inbox
+            Alerts & Notifications
           </SheetTitle>
           <SheetDescription className="text-xs">
-            Multi-channel alerts dispatched to <strong className="text-foreground">{activePersona.name}</strong>.
+            Recent announcement notifications sent to <strong className="text-foreground">{activePersona.name}</strong>.
           </SheetDescription>
         </SheetHeader>
 
@@ -52,7 +52,7 @@ export function NotificationDrawer({
         <div className="my-4 p-3 rounded-lg bg-muted/60 border border-border text-xs flex items-start gap-2.5">
           <ShieldCheck className="w-4 h-4 text-primary shrink-0 mt-0.5" />
           <div className="text-muted-foreground text-[11px] leading-relaxed">
-            <strong className="text-foreground">Zero-Attachment Rule:</strong> Confidential documents are never attached to notification emails. Recipients access them directly on the portal.
+            <strong className="text-foreground">Confidentiality Standard:</strong> To protect sensitive corporate documents, files remain securely on the portal and are never attached directly to notification emails.
           </div>
         </div>
 

@@ -138,9 +138,9 @@ export function PostAnnouncementDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-xl">New Management Announcement</DialogTitle>
+          <DialogTitle className="text-xl">Create Announcement</DialogTitle>
           <DialogDescription>
-            Author and publish an executive directive. Files are saved to a dedicated folder with access restricted to selected recipients.
+            Compose and publish an official announcement. Notices and attached files are accessible only to your selected recipients.
           </DialogDescription>
         </DialogHeader>
 
@@ -155,7 +155,7 @@ export function PostAnnouncementDialog({
           {/* Template Selection */}
           <div className="space-y-1.5">
             <Label htmlFor="template-select" className="text-xs">
-              Starter Template
+              Template
             </Label>
             <Select
               value={selectedTemplateId}
@@ -163,7 +163,7 @@ export function PostAnnouncementDialog({
               disabled={postMutation.isPending || isLoadingTemplates}
             >
               <SelectTrigger id="template-select" className="h-9 text-xs">
-                <SelectValue placeholder="Choose a starter template or start from blank" />
+                <SelectValue placeholder="Choose a template or start blank" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="blank">Blank Announcement (No template)</SelectItem>
@@ -206,7 +206,7 @@ export function PostAnnouncementDialog({
           {/* Message Content */}
           <div className="space-y-1.5">
             <Label htmlFor="message-content" className="text-xs">
-              Message Body <span className="text-destructive">*</span>
+              Message Content <span className="text-destructive">*</span>
             </Label>
             <Textarea
               id="message-content"
@@ -214,8 +214,8 @@ export function PostAnnouncementDialog({
               onChange={(e) => setMessage(e.target.value)}
               disabled={postMutation.isPending}
               rows={5}
-              placeholder="Enter announcement directives or details (markdown supported)..."
-              className="text-xs font-mono leading-relaxed resize-y"
+              placeholder="Write the announcement message and details here..."
+              className="text-xs font-sans leading-relaxed resize-y"
             />
           </div>
 

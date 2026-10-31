@@ -68,9 +68,9 @@ export function AnnouncementsLibrary() {
       {/* Action Header & Search Controls */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2">
         <div>
-          <h2 className="text-xl font-semibold tracking-tight">Announcements Document Library</h2>
+          <h2 className="text-xl font-semibold tracking-tight">Company Announcements</h2>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Security-trimmed repository. Folders are visible exclusively to authorized recipients.
+            Official executive notices, policy circulars, and departmental memos.
           </p>
         </div>
 
@@ -105,7 +105,7 @@ export function AnnouncementsLibrary() {
           <Input
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search announcements by title, author, or folder..."
+            placeholder="Search announcements by title or author..."
             className="pl-9 h-9 text-xs"
           />
         </div>
@@ -116,7 +116,7 @@ export function AnnouncementsLibrary() {
         {isLoading ? (
           <div className="p-12 text-center text-xs text-muted-foreground space-y-2">
             <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
-            <p>Loading security-trimmed documents...</p>
+            <p>Loading announcements...</p>
           </div>
         ) : filteredAnnouncements.length === 0 ? (
           <div className="p-12 text-center space-y-2.5">
@@ -134,7 +134,7 @@ export function AnnouncementsLibrary() {
               <>
                 <h4 className="text-sm font-medium">No Announcements Available</h4>
                 <p className="text-xs text-muted-foreground max-w-sm mx-auto">
-                  No announcement folders have been shared with your account or assigned groups.
+                  You have no announcements at this time. New notices targeted to your profile or department will appear here.
                 </p>
               </>
             )}
@@ -143,11 +143,11 @@ export function AnnouncementsLibrary() {
           <Table>
             <TableHeader>
               <TableRow className="hover:bg-transparent">
-                <TableHead className="w-[42%] text-xs font-semibold">Announcement Folder</TableHead>
+                <TableHead className="w-[45%] text-xs font-semibold">Notice Title</TableHead>
                 <TableHead className="text-xs font-semibold">Published By</TableHead>
                 <TableHead className="text-xs font-semibold">Date</TableHead>
-                <TableHead className="text-xs font-semibold">Audience</TableHead>
-                <TableHead className="text-xs font-semibold text-center">Files</TableHead>
+                <TableHead className="text-xs font-semibold">Shared With</TableHead>
+                <TableHead className="text-xs font-semibold text-center">Attachments</TableHead>
                 <TableHead className="text-xs font-semibold text-right">Action</TableHead>
               </TableRow>
             </TableHeader>
@@ -167,8 +167,8 @@ export function AnnouncementsLibrary() {
                         <p className="text-xs font-semibold text-foreground truncate hover:underline">
                           {item.title}
                         </p>
-                        <p className="text-[11px] text-muted-foreground font-mono truncate">
-                          {item.folder_name}
+                        <p className="text-[11px] text-muted-foreground truncate">
+                          Official Notice • {formatDate(item.created_at)}
                         </p>
                       </div>
                     </div>
@@ -185,14 +185,14 @@ export function AnnouncementsLibrary() {
                   <TableCell>
                     <Badge variant="outline" className="text-[11px] font-normal">
                       {item.target_summary?.length
-                        ? `${item.target_summary.length} target${item.target_summary.length > 1 ? "s" : ""}`
+                        ? `${item.target_summary.length} recipient${item.target_summary.length > 1 ? "s" : ""}`
                         : "Targeted"}
                     </Badge>
                   </TableCell>
 
                   <TableCell className="text-center">
-                    <span className="text-xs text-muted-foreground font-mono">
-                      {item.attachment_count || 1}
+                    <span className="text-xs text-muted-foreground">
+                      {item.attachment_count || 1} file{(item.attachment_count || 1) > 1 ? "s" : ""}
                     </span>
                   </TableCell>
 
@@ -206,7 +206,7 @@ export function AnnouncementsLibrary() {
                         handleOpenFolder(item.id)
                       }}
                     >
-                      View Folder
+                      View Notice
                     </Button>
                   </TableCell>
                 </TableRow>

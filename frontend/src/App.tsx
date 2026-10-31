@@ -99,32 +99,32 @@ export default function App() {
             </nav>
           </div>
 
-          {/* Right: Health, Notifications, User Persona Menu */}
+          {/* Right: Notifications & User Profile Menu */}
           <div className="flex items-center space-x-3">
-            {/* DB Status Dot */}
-            <div className="hidden lg:flex items-center gap-1.5 text-[11px] text-muted-foreground px-2 py-1 rounded-md border border-border">
+            {/* System Status */}
+            <div className="hidden lg:flex items-center gap-1.5 text-[11px] text-muted-foreground px-2.5 py-1 rounded-md border border-border">
               {isHealthLoading ? (
-                <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
               ) : isHealthError || health?.status !== "healthy" ? (
                 <>
                   <AlertCircle className="w-3 h-3 text-destructive" />
-                  <span className="text-destructive">API Offline</span>
+                  <span className="text-destructive">Service Unavailable</span>
                 </>
               ) : (
                 <>
-                  <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                  <span>PostgreSQL Connected</span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                  <span>Portal Connected</span>
                 </>
               )}
             </div>
 
-            {/* Notifications Drawer Trigger */}
+            {/* Notifications Trigger */}
             <Button
               variant="outline"
               size="icon"
               onClick={() => setIsNotificationDrawerOpen(true)}
               className="relative h-8 w-8 text-muted-foreground hover:text-foreground rounded-full"
-              title="Simulated Alerts (Outlook / Teams)"
+              title="Recent Alerts & Notifications"
             >
               <Bell className="w-4 h-4" />
               {unreadCount > 0 && (
@@ -135,7 +135,7 @@ export default function App() {
               <span className="sr-only">Notifications</span>
             </Button>
 
-            {/* Clean Persona Switcher Menu */}
+            {/* User Profile Menu */}
             <UserNav />
           </div>
         </div>

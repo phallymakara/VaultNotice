@@ -8,15 +8,15 @@ export function TemplateManager() {
   return (
     <div className="space-y-4">
       <div className="pb-2">
-        <h2 className="text-xl font-semibold tracking-tight">Announcement Templates</h2>
+        <h2 className="text-xl font-semibold tracking-tight">Standard Announcement Templates</h2>
         <p className="text-xs text-muted-foreground mt-0.5">
-          Pre-configured corporate templates maintained to streamline management communication.
+          Standardized message outlines maintained by administrators for company broadcasts.
         </p>
       </div>
 
       {isLoading ? (
         <div className="p-12 text-center text-xs text-muted-foreground">
-          Loading template catalog...
+          Loading templates...
         </div>
       ) : !templates || templates.length === 0 ? (
         <div className="p-12 text-center text-xs text-muted-foreground">
@@ -40,21 +40,21 @@ export function TemplateManager() {
               </div>
 
               <div className="text-xs bg-muted/40 p-2.5 rounded-md border border-border/60">
-                <span className="font-medium text-foreground block text-[11px] mb-0.5">Subject Template:</span>
-                <p className="font-mono text-muted-foreground text-[11px] truncate">
+                <span className="font-medium text-foreground block text-[11px] mb-0.5">Default Subject:</span>
+                <p className="text-muted-foreground text-[11px] truncate">
                   {tpl.title_template || "— (Blank Subject) —"}
                 </p>
               </div>
 
               <div className="text-xs text-muted-foreground line-clamp-3 leading-relaxed whitespace-pre-wrap font-sans">
-                {tpl.content_template || "Empty scratchpad allowing management to author announcements from scratch."}
+                {tpl.content_template || "Blank format for custom announcements."}
               </div>
 
               <div className="pt-2 flex items-center justify-between text-[11px] text-muted-foreground border-t border-border/60">
                 <Badge variant="secondary" className="text-[10px] font-normal">
                   Standard Template
                 </Badge>
-                <span className="font-mono text-[10px]">ID: #{tpl.id}</span>
+                <span className="text-[11px] text-muted-foreground">{tpl.category}</span>
               </div>
             </div>
           ))}

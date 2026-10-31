@@ -71,7 +71,7 @@ export function UserNav() {
 
           {activePersona.groups.length > 0 && (
             <div className="mt-3 pt-2 border-t border-border/60">
-              <p className="text-[10px] font-medium text-muted-foreground mb-1">MEMBER OF GROUPS</p>
+              <p className="text-[10px] font-medium text-muted-foreground mb-1">ASSIGNED GROUPS</p>
               <div className="flex flex-wrap gap-1">
                 {activePersona.groups.map((group) => (
                   <span
@@ -90,7 +90,7 @@ export function UserNav() {
 
         <DropdownMenuGroup>
           <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">
-            Switch Demo Persona
+            Switch User Profile
           </div>
           {personas.map((persona) => {
             const isSelected = persona.id === activePersona.id
@@ -116,3 +116,4 @@ export function UserNav() {
     </DropdownMenu>
   )
 }
+

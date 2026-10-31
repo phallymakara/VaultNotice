@@ -1,6 +1,5 @@
 import { useState } from "react"
 import { 
-  Folder, 
   FileText, 
   Download, 
   User, 
@@ -100,16 +99,16 @@ export function AnnouncementFolderModal({
         {isLoading ? (
           <div className="py-12 flex flex-col items-center justify-center space-y-2 text-muted-foreground">
             <Loader2 className="w-6 h-6 animate-spin text-primary" />
-            <p className="text-xs">Opening secure folder...</p>
+            <p className="text-xs">Opening announcement...</p>
           </div>
         ) : isError || !announcement ? (
           <div className="py-8 text-center space-y-3">
             <div className="w-10 h-10 rounded-full bg-destructive/10 text-destructive flex items-center justify-center mx-auto">
               <AlertCircle className="w-5 h-5" />
             </div>
-            <h3 className="text-sm font-semibold text-foreground">Access Denied</h3>
+            <h3 className="text-sm font-semibold text-foreground">Access Restricted</h3>
             <p className="text-xs text-muted-foreground max-w-md mx-auto">
-              {error instanceof Error ? error.message : "You do not have permission to view this folder."}
+              {error instanceof Error ? error.message : "You do not have permission to view this notice."}
             </p>
             <Button variant="outline" size="sm" onClick={() => onOpenChange(false)}>
               Close
@@ -117,11 +116,12 @@ export function AnnouncementFolderModal({
           </div>
         ) : (
           <div className="space-y-5">
-            {/* Folder Header */}
+            {/* Header */}
             <DialogHeader className="border-b pb-3">
-              <div className="flex items-center space-x-2 text-xs text-muted-foreground font-mono mb-1">
-                <Folder className="w-3.5 h-3.5 text-amber-500 fill-amber-500/20" />
-                <span>{announcement.folder_name}</span>
+              <div className="flex items-center space-x-2 text-xs text-muted-foreground mb-1">
+                <Badge variant="outline" className="text-[10px] font-normal">
+                  Official Directive
+                </Badge>
               </div>
               <DialogTitle className="text-xl font-semibold text-foreground">
                 {announcement.title}
@@ -138,7 +138,7 @@ export function AnnouncementFolderModal({
               </div>
             )}
 
-            {/* Folder Metadata */}
+            {/* Metadata */}
             <div className="p-3 bg-muted/40 rounded-lg border border-border text-xs space-y-2">
               <div className="flex items-center justify-between text-muted-foreground">
                 <div className="flex items-center gap-1.5">
@@ -152,7 +152,7 @@ export function AnnouncementFolderModal({
               </div>
 
               <div className="pt-2 border-t border-border/50">
-                <p className="text-[11px] text-muted-foreground font-medium mb-1.5">Designated Recipients:</p>
+                <p className="text-[11px] text-muted-foreground font-medium mb-1.5">Shared with:</p>
                 <div className="flex flex-wrap gap-1">
                   {announcement.target_summary.map((target, idx) => (
                     <Badge key={idx} variant="secondary" className="text-[11px] font-normal border border-border">
@@ -173,11 +173,11 @@ export function AnnouncementFolderModal({
               </div>
             </div>
 
-            {/* Primary Document: Generated PDF */}
+            {/* Primary Document */}
             {announcement.files.filter((f) => f.is_generated_pdf).map((pdf) => (
               <div key={pdf.id} className="space-y-1.5">
                 <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  Official Compiled Document
+                  Official Notice Document
                 </h4>
                 <div className="p-3 rounded-md border border-border bg-muted/20 flex items-center justify-between">
                   <div className="flex items-center space-x-2.5 min-w-0">
@@ -185,7 +185,7 @@ export function AnnouncementFolderModal({
                     <div className="min-w-0">
                       <p className="text-xs font-semibold truncate text-foreground">{pdf.file_name}</p>
                       <p className="text-[11px] text-muted-foreground">
-                        {formatFileSize(pdf.file_size)} • Corporate PDF
+                        {formatFileSize(pdf.file_size)} • Official Document
                       </p>
                     </div>
                   </div>

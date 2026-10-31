@@ -18,9 +18,9 @@ export function AuditLogViewer() {
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2">
         <div>
-          <h2 className="text-xl font-semibold tracking-tight">Compliance Audit Trail</h2>
+          <h2 className="text-xl font-semibold tracking-tight">Activity & Distribution Log</h2>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Immutable log recording author identity, publication timestamp, and target recipient snapshots.
+            Official record of published announcements, authors, and recipient distribution.
           </p>
         </div>
 
@@ -39,23 +39,23 @@ export function AuditLogViewer() {
       <div className="rounded-md border border-border bg-card shadow-xs overflow-hidden">
         {isLoading ? (
           <div className="p-12 text-center text-xs text-muted-foreground">
-            Loading compliance audit records...
+            Loading activity records...
           </div>
         ) : !logs || logs.length === 0 ? (
           <div className="p-12 text-center text-xs text-muted-foreground">
-            No audit records logged yet.
+            No activity records logged yet.
           </div>
         ) : (
           <Table>
             <TableHeader>
               <TableRow className="hover:bg-transparent">
-                <TableHead className="w-16 text-xs font-semibold">ID</TableHead>
-                <TableHead className="text-xs font-semibold">Title</TableHead>
+                <TableHead className="w-16 text-xs font-semibold">Ref #</TableHead>
+                <TableHead className="text-xs font-semibold">Subject</TableHead>
                 <TableHead className="text-xs font-semibold">Author</TableHead>
-                <TableHead className="text-xs font-semibold">Designated Recipients</TableHead>
-                <TableHead className="text-xs font-semibold text-center">Files</TableHead>
-                <TableHead className="text-xs font-semibold">Timestamp</TableHead>
-                <TableHead className="text-xs font-semibold text-right">Status</TableHead>
+                <TableHead className="text-xs font-semibold">Shared With</TableHead>
+                <TableHead className="text-xs font-semibold text-center">Attachments</TableHead>
+                <TableHead className="text-xs font-semibold">Date & Time</TableHead>
+                <TableHead className="text-xs font-semibold text-right">Delivery</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
