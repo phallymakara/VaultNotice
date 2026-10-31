@@ -185,7 +185,7 @@ You can switch personas at any moment using the **Persona Dropdown** in the top-
 
 | Proposal Requirement | Implementation Mechanism | Test Verification |
 | :--- | :--- | :--- |
-| **Management Composer Visibility** | Role-based check on `currentUser.is_management`. Non-management users see `FeedbackBanner`. | `test_post_announcement_audience_restriction` |
+| **Management Composer Visibility** | Role-based check on `currentUser.is_management`. Non-management users see only their security-trimmed library without the `+ New Announcement` action. | `test_post_announcement_audience_restriction` |
 | **Security-Trimmed Library** | Subquery filtering: `author_id = user_id OR is_admin OR target_id = user_id OR target_id IN (user_groups)`. | `test_current_user_audience_check` |
 | **403 on Unauthorized URL Access** | Server-side `verify_announcement_access` dependency returning `403 FORBIDDEN`. | `test_anti_url_guessing_security` |
 | **Dynamic Group Membership** | Permissions reference `group_id`. Adding/removing a user from `user_group_map` takes effect instantly without touching announcement records. | `test_dynamic_group_membership_transition` |

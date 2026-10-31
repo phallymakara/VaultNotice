@@ -86,7 +86,7 @@ Switch personas dynamically via the top-right dropdown in the web portal to expe
 | Persona | Role / Title | Group Memberships | Portal Experience |
 | :--- | :--- | :--- | :--- |
 | **Sarah Lin** | Management (Author) | Management, Senior Leadership | Sees "Post Announcement" form; can author & publish announcements. |
-| **David Miller** | Staff (Branch Manager) | All Branch Managers, Retail Banking | Form hidden (Feedback Banner); sees announcements sent to him or Branch Managers. |
+| **David Miller** | Staff (Branch Manager) | All Branch Managers, Retail Banking | Sees only announcements targeted to him or Branch Managers (New Announcement button hidden). |
 | **Sreyneath Meas** | Staff (Compliance Officer) | Compliance Team, Legal & Compliance | Form hidden; sees compliance and company-wide announcements. |
 | **Emily Tan** | Staff (Finance Specialist) | Finance Team | Form hidden; untargeted announcements are invisible (security trimmed). |
 | **Alex Vorn** | Staff (IT Support) | IT Support, Operations | Form hidden; untargeted announcements are invisible. |

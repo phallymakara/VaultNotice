@@ -1,9 +1,8 @@
 import { 
-  Bell, 
   Mail, 
   ExternalLink, 
   ShieldCheck, 
-  Bot, 
+  MessageSquare, 
   Clock 
 } from "lucide-react"
 import { useMyNotifications } from "@/hooks/useNotifications"
@@ -19,116 +18,102 @@ import {
 } from "@/components/ui/sheet"
 
 interface NotificationDrawerProps {
-  isOpen: boolean
-  onClose: () => void
+  open: boolean
+  onOpenChange: (open: boolean) => void
   onOpenAnnouncement: (id: number) => void
 }
 
 export function NotificationDrawer({
-  isOpen,
-  onClose,
+  open,
+  onOpenChange,
   onOpenAnnouncement,
 }: NotificationDrawerProps) {
   const { activePersona } = usePersona()
   const { data: notifications, isLoading } = useMyNotifications()
 
   const handleOpenClick = (announcementId: number) => {
-    onClose()
+    onOpenChange(false)
     onOpenAnnouncement(announcementId)
   }
 
   return (
-    <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
+    <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="right" className="w-full sm:max-w-md overflow-y-auto">
-        <SheetHeader className="pb-4 border-b">
-          <div className="flex items-center space-x-2">
-            <div className="p-2 rounded-lg bg-blue-100 text-blue-700">
-              <Bell className="w-5 h-5" />
-            </div>
-            <div>
-              <SheetTitle className="text-base font-bold text-slate-900">
-                Simulated Alerts & Inbox
-              </SheetTitle>
-              <SheetDescription className="text-xs text-slate-500">
-                Demonstrating email and Microsoft Teams notifications received by{" "}
-                <strong className="text-slate-700">{activePersona.name}</strong>.
-              </SheetDescription>
-            </div>
-          </div>
+        <SheetHeader className="pb-3 border-b">
+          <SheetTitle className="text-base font-semibold">
+            Simulated Notification Inbox
+          </SheetTitle>
+          <SheetDescription className="text-xs">
+            Multi-channel alerts dispatched to <strong className="text-foreground">{activePersona.name}</strong>.
+          </SheetDescription>
         </SheetHeader>
 
         {/* Security Rule Callout */}
-        <div className="my-4 p-3 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-950 text-xs flex items-start space-x-2.5">
-          <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-          <div className="leading-relaxed">
-            <strong>Zero Attachment Security Rule:</strong> Files are strictly protected by portal permissions and are <strong>never</strong> attached directly to notification emails.
+        <div className="my-4 p-3 rounded-lg bg-muted/60 border border-border text-xs flex items-start gap-2.5">
+          <ShieldCheck className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+          <div className="text-muted-foreground text-[11px] leading-relaxed">
+            <strong className="text-foreground">Zero-Attachment Rule:</strong> Confidential documents are never attached to notification emails. Recipients access them directly on the portal.
           </div>
         </div>
 
         {/* Notifications List */}
-        <div className="space-y-4">
+        <div className="space-y-3">
           {isLoading ? (
-            <div className="p-8 text-center text-xs text-slate-500">
+            <div className="p-8 text-center text-xs text-muted-foreground">
               Checking notification alerts...
             </div>
           ) : !notifications || notifications.length === 0 ? (
             <div className="p-12 text-center space-y-2">
-              <Mail className="w-8 h-8 text-slate-300 mx-auto" />
-              <div className="text-xs font-semibold text-slate-700">No New Notifications</div>
-              <p className="text-[11px] text-slate-400">
-                No announcement alerts have been dispatched to {activePersona.name} yet.
+              <Mail className="w-7 h-7 text-muted-foreground/40 mx-auto" />
+              <div className="text-xs font-medium text-foreground">No Alerts</div>
+              <p className="text-[11px] text-muted-foreground">
+                No notification alerts have been dispatched to {activePersona.name}.
               </p>
             </div>
           ) : (
             notifications.map((item) => (
               <div
                 key={item.id}
-                className="rounded-lg border border-slate-200 bg-white p-3.5 space-y-3 shadow-2xs hover:border-slate-300 transition-colors"
+                className="rounded-lg border border-border bg-card p-3.5 space-y-2.5 shadow-xs"
               >
                 {/* Channel Header */}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-1.5">
                     {item.channel === "EMAIL" ? (
-                      <span className="p-1 rounded bg-blue-50 text-blue-700 border border-blue-200">
-                        <Mail className="w-3.5 h-3.5" />
-                      </span>
+                      <Badge variant="outline" className="text-[10px] gap-1 font-normal">
+                        <Mail className="w-3 h-3 text-primary" /> Outlook Email
+                      </Badge>
                     ) : (
-                      <span className="p-1 rounded bg-purple-50 text-purple-700 border border-purple-200">
-                        <Bot className="w-3.5 h-3.5" />
-                      </span>
+                      <Badge variant="outline" className="text-[10px] gap-1 font-normal">
+                        <MessageSquare className="w-3 h-3 text-purple-500" /> Teams Card
+                      </Badge>
                     )}
-                    <span className="text-xs font-bold text-slate-800">
-                      {item.channel === "EMAIL" ? "Outlook Email Alert" : "Microsoft Teams Alert"}
-                    </span>
                   </div>
-
-                  <Badge variant="outline" className="text-[10px] text-slate-500">
-                    <Clock className="w-2.5 h-2.5 mr-1" />
+                  <span className="text-[11px] text-muted-foreground flex items-center gap-1">
+                    <Clock className="w-3 h-3" />
                     {new Date(item.sent_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                  </Badge>
+                  </span>
                 </div>
 
-                {/* Message Content Card */}
-                <div className="bg-slate-50/80 p-2.5 rounded border border-slate-100 text-xs space-y-1">
-                  <div className="font-semibold text-slate-900">{item.announcement_title}</div>
-                  <div className="text-slate-600 text-[11px]">
-                    From: <span className="font-medium">{item.author_name}</span> via Web Portal
-                  </div>
-                  <div className="text-slate-500 text-[11px] pt-1">
-                    You have a new announcement on the Web Portal. Please check the details and access official circular attachments securely.
-                  </div>
+                {/* Subject & Recipient */}
+                <div>
+                  <h4 className="text-xs font-semibold text-foreground leading-tight">
+                    {item.announcement_title}
+                  </h4>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">
+                    Posted by: {item.author_name}
+                  </p>
                 </div>
 
-                {/* Call To Action Button (Open on Web Portal) */}
-                <div className="flex items-center justify-between pt-1">
-                  <span className="text-[10px] text-slate-400 font-mono">Status: {item.status}</span>
+                {/* Action Deep Link */}
+                <div className="pt-1">
                   <Button
                     size="sm"
+                    variant="outline"
+                    className="w-full text-xs h-8 gap-1.5 font-medium"
                     onClick={() => handleOpenClick(item.announcement_id)}
-                    className="h-7 text-xs bg-blue-600 hover:bg-blue-700 text-white font-medium gap-1.5"
                   >
-                    <span>Open on Web Portal</span>
-                    <ExternalLink className="w-3 h-3" />
+                    <ExternalLink className="w-3.5 h-3.5" /> Open on Web Portal
                   </Button>
                 </div>
               </div>
@@ -139,4 +124,3 @@ export function NotificationDrawer({
     </Sheet>
   )
 }
-

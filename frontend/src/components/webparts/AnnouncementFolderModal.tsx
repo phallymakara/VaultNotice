@@ -5,12 +5,9 @@ import {
   Download, 
   User, 
   Calendar, 
-  Users, 
-  ShieldCheck, 
   FileSpreadsheet, 
   FileImage, 
   Loader2,
-  FileCheck2,
   AlertCircle
 } from "lucide-react"
 import { useAnnouncementDetails } from "@/hooks/useAnnouncements"
@@ -28,20 +25,20 @@ import {
 
 interface AnnouncementFolderModalProps {
   announcementId: number | null
-  isOpen: boolean
-  onClose: () => void
+  open: boolean
+  onOpenChange: (open: boolean) => void
 }
 
 export function AnnouncementFolderModal({
   announcementId,
-  isOpen,
-  onClose,
+  open,
+  onOpenChange,
 }: AnnouncementFolderModalProps) {
   const [downloadingFileId, setDownloadingFileId] = useState<number | null>(null)
   const [downloadError, setDownloadError] = useState<string | null>(null)
 
   const { data: announcement, isLoading, isError, error } = useAnnouncementDetails(
-    isOpen ? announcementId : null
+    open ? announcementId : null
   )
 
   const formatFileSize = (bytes: number): string => {
@@ -51,18 +48,18 @@ export function AnnouncementFolderModal({
   }
 
   const getFileIcon = (fileName: string, isPdf: boolean) => {
-    if (isPdf) return <FileText className="w-5 h-5 text-red-600" />
+    if (isPdf) return <FileText className="w-4 h-4 text-primary shrink-0" />
     const lower = fileName.toLowerCase()
     if (lower.endsWith(".xlsx") || lower.endsWith(".xls") || lower.endsWith(".csv")) {
-      return <FileSpreadsheet className="w-5 h-5 text-emerald-600" />
+      return <FileSpreadsheet className="w-4 h-4 text-emerald-600 shrink-0" />
     }
     if (lower.endsWith(".png") || lower.endsWith(".jpg") || lower.endsWith(".jpeg")) {
-      return <FileImage className="w-5 h-5 text-purple-600" />
+      return <FileImage className="w-4 h-4 text-purple-600 shrink-0" />
     }
-    return <FileText className="w-5 h-5 text-blue-600" />
+    return <FileText className="w-4 h-4 text-muted-foreground shrink-0" />
   }
 
-  // Authenticated file download handler ensuring X-User-Id is passed
+  // Authenticated file download handler
   const handleDownloadFile = async (file: FileItem) => {
     setDownloadingFileId(file.id)
     setDownloadError(null)
@@ -98,126 +95,106 @@ export function AnnouncementFolderModal({
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto">
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         {isLoading ? (
-          <div className="py-12 flex flex-col items-center justify-center space-y-3">
-            <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-            <p className="text-xs text-slate-500">Opening secure announcement folder...</p>
+          <div className="py-12 flex flex-col items-center justify-center space-y-2 text-muted-foreground">
+            <Loader2 className="w-6 h-6 animate-spin text-primary" />
+            <p className="text-xs">Opening secure folder...</p>
           </div>
         ) : isError || !announcement ? (
           <div className="py-8 text-center space-y-3">
-            <div className="w-12 h-12 rounded-full bg-red-100 text-red-600 flex items-center justify-center mx-auto">
-              <AlertCircle className="w-6 h-6" />
+            <div className="w-10 h-10 rounded-full bg-destructive/10 text-destructive flex items-center justify-center mx-auto">
+              <AlertCircle className="w-5 h-5" />
             </div>
-            <h3 className="text-sm font-bold text-slate-900">Unable to Open Folder</h3>
-            <p className="text-xs text-red-600 max-w-md mx-auto">
+            <h3 className="text-sm font-semibold text-foreground">Access Denied</h3>
+            <p className="text-xs text-muted-foreground max-w-md mx-auto">
               {error instanceof Error ? error.message : "You do not have permission to view this folder."}
             </p>
-            <Button variant="outline" size="sm" onClick={onClose} className="text-xs">
+            <Button variant="outline" size="sm" onClick={() => onOpenChange(false)}>
               Close
             </Button>
           </div>
         ) : (
-          <div className="space-y-6">
+          <div className="space-y-5">
             {/* Folder Header */}
-            <DialogHeader className="border-b pb-4">
-              <div className="flex items-center space-x-2 text-xs text-blue-600 font-semibold mb-1">
-                <Folder className="w-4 h-4" />
-                <span>ANNOUNCEMENT FOLDER</span>
-                <span className="text-slate-300">•</span>
-                <span className="font-mono text-slate-500">{announcement.folder_name}</span>
+            <DialogHeader className="border-b pb-3">
+              <div className="flex items-center space-x-2 text-xs text-muted-foreground font-mono mb-1">
+                <Folder className="w-3.5 h-3.5 text-amber-500 fill-amber-500/20" />
+                <span>{announcement.folder_name}</span>
               </div>
-              <DialogTitle className="text-xl font-bold text-slate-900">
+              <DialogTitle className="text-xl font-semibold text-foreground">
                 {announcement.title}
               </DialogTitle>
-              <DialogDescription className="text-xs text-slate-500">
-                Created on {new Date(announcement.created_at).toLocaleString()}
+              <DialogDescription className="text-xs">
+                Published on {new Date(announcement.created_at).toLocaleDateString()} by {announcement.author_name}
               </DialogDescription>
             </DialogHeader>
 
             {downloadError && (
-              <div className="p-3 bg-red-50 border border-red-200 rounded-md text-xs text-red-700 flex items-center space-x-2">
-                <AlertCircle className="w-4 h-4 shrink-0 text-red-600" />
+              <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-md text-xs text-destructive flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0" />
                 <span>{downloadError}</span>
               </div>
             )}
 
-            {/* Folder Metadata Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3.5 bg-slate-50 rounded-lg border border-slate-200 text-xs">
-              <div className="flex items-center space-x-2 text-slate-700">
-                <User className="w-4 h-4 text-slate-400 shrink-0" />
-                <span>
-                  <strong className="text-slate-900">Author:</strong> {announcement.author_name}
-                </span>
+            {/* Folder Metadata */}
+            <div className="p-3 bg-muted/40 rounded-lg border border-border text-xs space-y-2">
+              <div className="flex items-center justify-between text-muted-foreground">
+                <div className="flex items-center gap-1.5">
+                  <User className="w-3.5 h-3.5" />
+                  <span>Author: <strong className="text-foreground font-medium">{announcement.author_name}</strong></span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <Calendar className="w-3.5 h-3.5" />
+                  <span>{new Date(announcement.created_at).toLocaleDateString()}</span>
+                </div>
               </div>
 
-              <div className="flex items-center space-x-2 text-slate-700">
-                <Calendar className="w-4 h-4 text-slate-400 shrink-0" />
-                <span>
-                  <strong className="text-slate-900">Date Posted:</strong>{" "}
-                  {new Date(announcement.created_at).toLocaleDateString()}
-                </span>
-              </div>
-
-              <div className="sm:col-span-2 flex items-start space-x-2 text-slate-700 pt-1 border-t border-slate-200/60">
-                <Users className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
-                <div>
-                  <strong className="text-slate-900 block mb-1">Shared With (Designated Recipients):</strong>
-                  <div className="flex flex-wrap gap-1.5">
-                    {announcement.target_summary.map((target, idx) => (
-                      <span
-                        key={idx}
-                        className="bg-white border border-slate-200 text-slate-800 text-[11px] px-2 py-0.5 rounded font-medium shadow-2xs"
-                      >
-                        {target}
-                      </span>
-                    ))}
-                  </div>
+              <div className="pt-2 border-t border-border/50">
+                <p className="text-[11px] text-muted-foreground font-medium mb-1.5">Designated Recipients:</p>
+                <div className="flex flex-wrap gap-1">
+                  {announcement.target_summary.map((target, idx) => (
+                    <Badge key={idx} variant="secondary" className="text-[11px] font-normal border border-border">
+                      {target}
+                    </Badge>
+                  ))}
                 </div>
               </div>
             </div>
 
-            {/* Announcement Message Body */}
-            <div className="space-y-2">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500">
+            {/* Message Body */}
+            <div className="space-y-1.5">
+              <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 Announcement Message
               </h4>
-              <div className="p-4 rounded-lg border border-slate-200 bg-white text-xs leading-relaxed whitespace-pre-wrap font-sans text-slate-800">
+              <div className="p-3.5 rounded-md border border-border bg-card text-xs leading-relaxed whitespace-pre-wrap font-sans text-foreground">
                 {announcement.message_content}
               </div>
             </div>
 
-            {/* Section 1: Generated Announcement PDF */}
+            {/* Primary Document: Generated PDF */}
             {announcement.files.filter((f) => f.is_generated_pdf).map((pdf) => (
-              <div key={pdf.id} className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
-                    <FileCheck2 className="w-3.5 h-3.5 text-blue-600" /> Primary Document (Generated PDF)
-                  </h4>
-                  <Badge variant="success" className="text-[10px]">
-                    <ShieldCheck className="w-3 h-3 mr-1" /> System Generated
-                  </Badge>
-                </div>
-
-                <div className="flex items-center justify-between p-3.5 bg-blue-50/50 rounded-lg border border-blue-200">
-                  <div className="flex items-center space-x-3">
-                    <div className="p-2.5 rounded-lg bg-red-100 text-red-700">
-                      <FileText className="w-6 h-6" />
-                    </div>
-                    <div>
-                      <div className="font-bold text-slate-900 text-sm">{pdf.file_name}</div>
-                      <div className="text-xs text-slate-500">
-                        Official Executive Circular • {formatFileSize(pdf.file_size)}
-                      </div>
+              <div key={pdf.id} className="space-y-1.5">
+                <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Official Compiled Document
+                </h4>
+                <div className="p-3 rounded-md border border-border bg-muted/20 flex items-center justify-between">
+                  <div className="flex items-center space-x-2.5 min-w-0">
+                    <FileText className="w-5 h-5 text-primary shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-xs font-semibold truncate text-foreground">{pdf.file_name}</p>
+                      <p className="text-[11px] text-muted-foreground">
+                        {formatFileSize(pdf.file_size)} • Corporate PDF
+                      </p>
                     </div>
                   </div>
-
                   <Button
                     size="sm"
-                    onClick={() => handleDownloadFile(pdf)}
+                    variant="outline"
+                    className="h-8 text-xs gap-1.5 shrink-0"
                     disabled={downloadingFileId === pdf.id}
-                    className="bg-blue-600 hover:bg-blue-700 text-white text-xs gap-1.5 shrink-0"
+                    onClick={() => handleDownloadFile(pdf)}
                   >
                     {downloadingFileId === pdf.id ? (
                       <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -230,68 +207,52 @@ export function AnnouncementFolderModal({
               </div>
             ))}
 
-            {/* Section 2: Attached Documents */}
-            <div className="space-y-2">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                Attached Documents ({announcement.files.filter((f) => !f.is_generated_pdf).length})
-              </h4>
-
-              {announcement.files.filter((f) => !f.is_generated_pdf).length === 0 ? (
-                <div className="p-4 rounded-lg border border-slate-200 bg-slate-50 text-center text-xs text-slate-500">
-                  No additional document attachments uploaded for this announcement.
-                </div>
-              ) : (
-                <div className="space-y-2">
+            {/* Supporting Attachments */}
+            {announcement.files.filter((f) => !f.is_generated_pdf).length > 0 && (
+              <div className="space-y-1.5">
+                <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Attached Files ({announcement.files.filter((f) => !f.is_generated_pdf).length})
+                </h4>
+                <div className="divide-y divide-border rounded-md border border-border overflow-hidden">
                   {announcement.files
                     .filter((f) => !f.is_generated_pdf)
                     .map((file) => (
                       <div
                         key={file.id}
-                        className="flex items-center justify-between p-3 bg-white rounded-lg border border-slate-200 hover:border-slate-300 transition-colors shadow-2xs"
+                        className="p-2.5 flex items-center justify-between text-xs hover:bg-muted/30 transition-colors"
                       >
-                        <div className="flex items-center space-x-3 overflow-hidden">
-                          <div className="p-2 rounded bg-slate-100 shrink-0">
-                            {getFileIcon(file.file_name, false)}
-                          </div>
-                          <div className="overflow-hidden">
-                            <div className="font-semibold text-slate-900 text-xs truncate">
-                              {file.file_name}
-                            </div>
-                            <div className="text-[11px] text-slate-500">
-                              {formatFileSize(file.file_size)} • {file.mime_type}
-                            </div>
+                        <div className="flex items-center space-x-2.5 truncate min-w-0">
+                          {getFileIcon(file.file_name, false)}
+                          <div className="min-w-0 truncate">
+                            <span className="font-medium truncate text-foreground">{file.file_name}</span>
+                            <span className="text-[11px] text-muted-foreground ml-2">
+                              {formatFileSize(file.file_size)}
+                            </span>
                           </div>
                         </div>
 
                         <Button
-                          variant="outline"
                           size="sm"
-                          onClick={() => handleDownloadFile(file)}
+                          variant="ghost"
+                          className="h-7 px-2 text-xs gap-1 shrink-0 text-muted-foreground hover:text-foreground"
                           disabled={downloadingFileId === file.id}
-                          className="h-8 text-xs gap-1.5 text-slate-700 shrink-0 ml-4"
+                          onClick={() => handleDownloadFile(file)}
                         >
                           {downloadingFileId === file.id ? (
-                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            <Loader2 className="w-3 h-3 animate-spin" />
                           ) : (
-                            <Download className="w-3.5 h-3.5 text-slate-500" />
+                            <Download className="w-3 h-3" />
                           )}
                           Download
                         </Button>
                       </div>
                     ))}
                 </div>
-              )}
-            </div>
-
-            <div className="pt-2 flex justify-end">
-              <Button variant="outline" size="sm" onClick={onClose} className="text-xs">
-                Close Folder
-              </Button>
-            </div>
+              </div>
+            )}
           </div>
         )}
       </DialogContent>
     </Dialog>
   )
 }
-

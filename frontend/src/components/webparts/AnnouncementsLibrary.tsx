@@ -1,19 +1,18 @@
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { 
   Folder, 
   FolderLock, 
-  FileText, 
-  Calendar, 
-  ExternalLink, 
-  ShieldAlert, 
-  RefreshCw 
+  RefreshCw, 
+  Search,
+  Plus
 } from "lucide-react"
 import { useAnnouncements } from "@/hooks/useAnnouncements"
 import { usePersona } from "@/context/PersonaContext"
 import { AnnouncementFolderModal } from "./AnnouncementFolderModal"
+import { PostAnnouncementDialog } from "./PostAnnouncementDialog"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
 import {
   Table,
   TableBody,
@@ -25,157 +24,189 @@ import {
 
 export function AnnouncementsLibrary() {
   const [selectedAnnouncementId, setSelectedAnnouncementId] = useState<number | null>(null)
-  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isFolderModalOpen, setIsFolderModalOpen] = useState(false)
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState("")
 
   const { activePersona } = usePersona()
   const { data: announcements, isLoading, isRefetching, refetch } = useAnnouncements()
 
+  // Filter announcements by search query
+  const filteredAnnouncements = useMemo(() => {
+    if (!announcements) return []
+    if (!searchQuery.trim()) return announcements
+
+    const q = searchQuery.toLowerCase()
+    return announcements.filter(
+      (a) =>
+        a.title.toLowerCase().includes(q) ||
+        a.folder_name.toLowerCase().includes(q) ||
+        a.author_name.toLowerCase().includes(q)
+    )
+  }, [announcements, searchQuery])
+
   const handleOpenFolder = (id: number) => {
     setSelectedAnnouncementId(id)
-    setIsModalOpen(true)
+    setIsFolderModalOpen(true)
+  }
+
+  const formatDate = (dateString: string) => {
+    try {
+      const d = new Date(dateString)
+      return d.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      })
+    } catch {
+      return dateString
+    }
   }
 
   return (
-    <Card className="border-slate-200 shadow-sm bg-white">
-      <CardHeader className="pb-3 border-b border-slate-100">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="flex items-center space-x-2.5">
-            <div className="p-2 rounded-lg bg-indigo-50 text-indigo-600 border border-indigo-100">
+    <div className="space-y-4">
+      {/* Action Header & Search Controls */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2">
+        <div>
+          <h2 className="text-xl font-semibold tracking-tight">Announcements Document Library</h2>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Security-trimmed repository. Folders are visible exclusively to authorized recipients.
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2 self-start sm:self-auto">
+          {activePersona.can_post_announcement && (
+            <Button
+              size="sm"
+              onClick={() => setIsCreateModalOpen(true)}
+              className="gap-1.5 shadow-xs"
+            >
+              <Plus className="w-3.5 h-3.5" /> New Announcement
+            </Button>
+          )}
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => refetch()}
+            disabled={isLoading || isRefetching}
+            className="gap-1.5 h-9"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${isRefetching ? "animate-spin" : ""}`} />
+            <span className="hidden sm:inline">Refresh</span>
+          </Button>
+        </div>
+      </div>
+
+      {/* Search & Filter Bar */}
+      <div className="flex items-center gap-3">
+        <div className="relative flex-1">
+          <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+          <Input
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search announcements by title, author, or folder..."
+            className="pl-9 h-9 text-xs"
+          />
+        </div>
+      </div>
+
+      {/* Table Card */}
+      <div className="rounded-md border border-border bg-card shadow-xs overflow-hidden">
+        {isLoading ? (
+          <div className="p-12 text-center text-xs text-muted-foreground space-y-2">
+            <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
+            <p>Loading security-trimmed documents...</p>
+          </div>
+        ) : filteredAnnouncements.length === 0 ? (
+          <div className="p-12 text-center space-y-2.5">
+            <div className="w-10 h-10 rounded-full bg-muted text-muted-foreground flex items-center justify-center mx-auto">
               <FolderLock className="w-5 h-5" />
             </div>
-            <div>
-              <CardTitle className="text-lg font-bold text-slate-900">
-                Announcements Document Library
-              </CardTitle>
-              <CardDescription className="text-xs text-slate-500">
-                Security-trimmed document repository. You only see announcement folders shared with your account or groups.
-              </CardDescription>
-            </div>
-          </div>
-
-          <div className="flex items-center space-x-2 self-start sm:self-auto">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => refetch()}
-              disabled={isLoading || isRefetching}
-              className="h-8 text-xs gap-1.5 text-slate-600"
-            >
-              <RefreshCw className={`w-3.5 h-3.5 ${isRefetching ? "animate-spin" : ""}`} />
-              Refresh
-            </Button>
-          </div>
-        </div>
-      </CardHeader>
-
-      <CardContent className="p-0">
-        {isLoading ? (
-          <div className="p-8 text-center text-xs text-slate-500 space-y-2">
-            <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto" />
-            <p>Loading security-trimmed announcements library...</p>
-          </div>
-        ) : !announcements || announcements.length === 0 ? (
-          <div className="p-12 text-center space-y-3">
-            <div className="w-12 h-12 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto">
-              <ShieldAlert className="w-6 h-6" />
-            </div>
-            <div className="space-y-1">
-              <h4 className="text-sm font-semibold text-slate-800">No Announcements Found</h4>
-              <p className="text-xs text-slate-500 max-w-sm mx-auto">
-                No announcement folders have been shared with{" "}
-                <strong className="text-slate-700">{activePersona.name}</strong> or your assigned groups yet.
-              </p>
-            </div>
+            {searchQuery ? (
+              <>
+                <h4 className="text-sm font-medium">No results found</h4>
+                <p className="text-xs text-muted-foreground">
+                  No announcements match "{searchQuery}".
+                </p>
+              </>
+            ) : (
+              <>
+                <h4 className="text-sm font-medium">No Announcements Available</h4>
+                <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+                  No announcement folders have been shared with your account or assigned groups.
+                </p>
+              </>
+            )}
           </div>
         ) : (
           <Table>
-            <TableHeader className="bg-slate-50/80">
-              <TableRow>
-                <TableHead className="text-xs font-semibold text-slate-700 w-[40%]">Announcement Folder</TableHead>
-                <TableHead className="text-xs font-semibold text-slate-700">Posted By</TableHead>
-                <TableHead className="text-xs font-semibold text-slate-700">Date</TableHead>
-                <TableHead className="text-xs font-semibold text-slate-700">Target Audience</TableHead>
-                <TableHead className="text-xs font-semibold text-slate-700 text-center">Files</TableHead>
-                <TableHead className="text-xs font-semibold text-slate-700 text-right">Action</TableHead>
+            <TableHeader>
+              <TableRow className="hover:bg-transparent">
+                <TableHead className="w-[42%] text-xs font-semibold">Announcement Folder</TableHead>
+                <TableHead className="text-xs font-semibold">Published By</TableHead>
+                <TableHead className="text-xs font-semibold">Date</TableHead>
+                <TableHead className="text-xs font-semibold">Audience</TableHead>
+                <TableHead className="text-xs font-semibold text-center">Files</TableHead>
+                <TableHead className="text-xs font-semibold text-right">Action</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {announcements.map((item) => (
+              {filteredAnnouncements.map((item) => (
                 <TableRow
                   key={item.id}
                   onClick={() => handleOpenFolder(item.id)}
-                  className="cursor-pointer hover:bg-blue-50/40 transition-colors group"
+                  className="cursor-pointer transition-colors"
                 >
-                  {/* Folder Name */}
-                  <TableCell className="font-medium text-slate-900 py-3.5">
+                  <TableCell className="font-medium">
                     <div className="flex items-center space-x-2.5">
-                      <div className="p-1.5 rounded bg-blue-100/70 text-blue-700 group-hover:bg-blue-600 group-hover:text-white transition-colors shrink-0">
-                        <Folder className="w-4 h-4" />
+                      <div className="p-1.5 rounded-md bg-muted text-muted-foreground shrink-0">
+                        <Folder className="w-4 h-4 text-amber-500 fill-amber-500/20" />
                       </div>
-                      <div className="overflow-hidden">
-                        <div className="text-xs font-bold text-slate-900 group-hover:text-blue-600 truncate">
+                      <div className="min-w-0">
+                        <p className="text-xs font-semibold text-foreground truncate hover:underline">
                           {item.title}
-                        </div>
-                        <div className="text-[11px] font-mono text-slate-400 truncate">
+                        </p>
+                        <p className="text-[11px] text-muted-foreground font-mono truncate">
                           {item.folder_name}
-                        </div>
+                        </p>
                       </div>
                     </div>
                   </TableCell>
 
-                  {/* Author */}
-                  <TableCell className="text-xs text-slate-600 whitespace-nowrap">
+                  <TableCell className="text-xs text-muted-foreground">
                     {item.author_name}
                   </TableCell>
 
-                  {/* Date */}
-                  <TableCell className="text-xs text-slate-500 whitespace-nowrap">
-                    <div className="flex items-center space-x-1.5">
-                      <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                      <span>{new Date(item.created_at).toLocaleDateString()}</span>
-                    </div>
+                  <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
+                    {formatDate(item.created_at)}
                   </TableCell>
 
-                  {/* Target Audience */}
-                  <TableCell className="text-xs">
-                    <div className="flex flex-wrap gap-1 max-w-xs">
-                      {item.target_summary.length === 0 ? (
-                        <span className="text-[11px] text-slate-400">Designated Staff</span>
-                      ) : (
-                        item.target_summary.map((t, idx) => (
-                          <Badge
-                            key={idx}
-                            variant="secondary"
-                            className="text-[10px] py-0 px-2 font-normal bg-slate-100 text-slate-700 border border-slate-200"
-                          >
-                            {t}
-                          </Badge>
-                        ))
-                      )}
-                    </div>
-                  </TableCell>
-
-                  {/* Files count */}
-                  <TableCell className="text-center whitespace-nowrap">
-                    <Badge variant="outline" className="text-[11px] gap-1 font-normal bg-white">
-                      <FileText className="w-3 h-3 text-slate-500" />
-                      {item.attachment_count + 1}
+                  <TableCell>
+                    <Badge variant="outline" className="text-[11px] font-normal">
+                      {item.target_summary?.length
+                        ? `${item.target_summary.length} target${item.target_summary.length > 1 ? "s" : ""}`
+                        : "Targeted"}
                     </Badge>
                   </TableCell>
 
-                  {/* Open Button */}
+                  <TableCell className="text-center">
+                    <span className="text-xs text-muted-foreground font-mono">
+                      {item.attachment_count || 1}
+                    </span>
+                  </TableCell>
+
                   <TableCell className="text-right">
                     <Button
                       variant="ghost"
                       size="sm"
+                      className="h-8 text-xs font-normal hover:bg-muted"
                       onClick={(e) => {
                         e.stopPropagation()
                         handleOpenFolder(item.id)
                       }}
-                      className="h-8 text-xs gap-1 text-blue-600 hover:text-blue-700 hover:bg-blue-100/50"
                     >
-                      <span>Open</span>
-                      <ExternalLink className="w-3.5 h-3.5" />
+                      View Folder
                     </Button>
                   </TableCell>
                 </TableRow>
@@ -183,18 +214,22 @@ export function AnnouncementsLibrary() {
             </TableBody>
           </Table>
         )}
-      </CardContent>
+      </div>
 
-      {/* Inside Folder Modal */}
-      <AnnouncementFolderModal
-        announcementId={selectedAnnouncementId}
-        isOpen={isModalOpen}
-        onClose={() => {
-          setIsModalOpen(false)
-          setSelectedAnnouncementId(null)
-        }}
+      {/* Composer Dialog */}
+      <PostAnnouncementDialog
+        open={isCreateModalOpen}
+        onOpenChange={setIsCreateModalOpen}
       />
-    </Card>
+
+      {/* Inside Folder Explorer Modal */}
+      {selectedAnnouncementId && (
+        <AnnouncementFolderModal
+          announcementId={selectedAnnouncementId}
+          open={isFolderModalOpen}
+          onOpenChange={setIsFolderModalOpen}
+        />
+      )}
+    </div>
   )
 }
-
