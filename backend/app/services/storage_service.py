@@ -44,9 +44,14 @@ def create_announcement_folder(folder_name: str) -> str:
 
 
 def sanitize_filename(filename: str) -> str:
-    clean_name = os.path.basename(filename)
+    # Normalize backslashes to forward slashes first to handle Windows paths on Unix
+    normalized = filename.replace("\\", "/")
+    clean_name = os.path.basename(normalized)
+    # Remove any directory traversal sequences
+    clean_name = re.sub(r"\.{2,}", "", clean_name)
     clean_name = re.sub(r'[\\/*?:"<>|]', "_", clean_name)
     clean_name = re.sub(r"\s+", "_", clean_name)
+    clean_name = clean_name.strip("._ ")
     return clean_name or "attachment.bin"
 
 

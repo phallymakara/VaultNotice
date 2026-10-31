@@ -42,3 +42,4 @@ export function useAuditLogs(limit: number = 50, offset: number = 0) {
     queryFn: () => apiClient.getAuditLogs(limit, offset),
   })
 }
+

@@ -11,3 +11,4 @@ export function useMyNotifications() {
     refetchInterval: 10000,
   })
 }
+

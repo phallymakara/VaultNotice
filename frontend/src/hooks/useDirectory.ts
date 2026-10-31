@@ -15,3 +15,4 @@ export function useCurrentUserProfile() {
     queryFn: () => apiClient.getCurrentUserProfile(),
   })
 }
+

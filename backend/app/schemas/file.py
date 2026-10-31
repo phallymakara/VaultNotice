@@ -11,4 +11,3 @@ class FileResponse(BaseModel):
     download_url: str
 
     model_config = ConfigDict(from_attributes=True)
-
