@@ -77,7 +77,7 @@ export function NotificationModal({
           )}
         </div>
 
-        <div className="max-h-[500px] overflow-y-auto p-3 space-y-2.5 flex-1">
+        <div className="max-h-[500px] overflow-y-auto divide-y divide-border flex-1">
           {isLoading ? (
             <div className="py-8 text-center text-xs text-muted-foreground">
               Loading notifications...
@@ -90,32 +90,20 @@ export function NotificationModal({
             notifications.map((item) => (
               <div
                 key={item.id}
-                className="rounded-lg border border-border bg-card p-3 space-y-1.5 shadow-xs transition-colors hover:bg-muted/30"
+                onClick={() => handleOpenClick(item.announcement_id)}
+                className="p-3.5 space-y-1 cursor-pointer transition-colors hover:bg-muted/40"
               >
-                <div className="flex items-center justify-between text-xs text-muted-foreground">
-                  <span className="font-medium text-foreground">
-                    {item.channel === "TEAMS" ? "Teams Card" : "Outlook Email"}
+                <div className="flex items-start justify-between gap-3">
+                  <div className="text-sm font-semibold text-foreground leading-snug">
+                    {item.announcement_title}
+                  </div>
+                  <span className="text-xs text-muted-foreground shrink-0 mt-0.5">
+                    {formatTime(item.sent_at)}
                   </span>
-                  <span>{formatTime(item.sent_at)}</span>
-                </div>
-
-                <div className="text-sm font-semibold text-foreground leading-snug">
-                  {item.announcement_title}
                 </div>
 
                 <div className="text-xs text-muted-foreground">
                   Posted by: {item.author_name}
-                </div>
-
-                <div className="pt-1.5">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="w-full text-xs h-7 font-medium cursor-pointer"
-                    onClick={() => handleOpenClick(item.announcement_id)}
-                  >
-                    Open on Web Portal
-                  </Button>
                 </div>
               </div>
             ))
