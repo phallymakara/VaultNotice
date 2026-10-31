@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { UserNav } from "@/components/layout/UserNav"
 import { AnnouncementsLibrary } from "@/components/webparts/AnnouncementsLibrary"
 import { AnnouncementFolderModal } from "@/components/webparts/AnnouncementFolderModal"
-import { NotificationDrawer } from "@/components/webparts/NotificationDrawer"
+import { NotificationModal } from "@/components/webparts/NotificationModal"
 import { AuditLogViewer } from "@/components/webparts/AuditLogViewer"
 import { TemplateManager } from "@/components/webparts/TemplateManager"
 import { 
@@ -17,7 +17,7 @@ import {
 
 export default function App() {
   const { activePersona } = usePersona()
-  const [isNotificationDrawerOpen, setIsNotificationDrawerOpen] = useState(false)
+  const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false)
   const [selectedAnnouncementId, setSelectedAnnouncementId] = useState<number | null>(null)
   const [isFolderModalOpen, setIsFolderModalOpen] = useState(false)
   const [activeTab, setActiveTab] = useState<"announcements" | "templates" | "audit">("announcements")
@@ -80,9 +80,9 @@ export default function App() {
             <Button
               variant="outline"
               size="icon"
-              onClick={() => setIsNotificationDrawerOpen(true)}
+              onClick={() => setIsNotificationModalOpen(true)}
               className="relative h-8 w-8 text-muted-foreground hover:text-foreground rounded-full"
-              title="Recent Alerts & Notifications"
+              title="Notifications"
             >
               <Bell className="w-4 h-4" />
               {unreadCount > 0 && (
@@ -109,10 +109,10 @@ export default function App() {
         {activeTab === "audit" && isAdmin && <AuditLogViewer />}
       </main>
 
-      {/* Slide-over Notification Drawer */}
-      <NotificationDrawer
-        open={isNotificationDrawerOpen}
-        onOpenChange={setIsNotificationDrawerOpen}
+      {/* Notification Modal */}
+      <NotificationModal
+        open={isNotificationModalOpen}
+        onOpenChange={setIsNotificationModalOpen}
         onOpenAnnouncement={handleOpenAnnouncement}
       />
 
