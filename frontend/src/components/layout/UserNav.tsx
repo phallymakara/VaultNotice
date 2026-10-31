@@ -1,6 +1,5 @@
 import { usePersona } from "@/context/PersonaContext"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -11,7 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Check, ShieldCheck, User } from "lucide-react"
+import { Check, User } from "lucide-react"
 
 export function UserNav() {
   const { activePersona, setActivePersona, personas } = usePersona()
@@ -39,7 +38,7 @@ export function UserNav() {
         </Button>
       </DropdownMenuTrigger>
 
-      <DropdownMenuContent className="w-72" align="end" forceMount>
+      <DropdownMenuContent className="w-56" align="end" forceMount>
         <DropdownMenuLabel className="font-normal p-3">
           <div className="flex items-center gap-3">
             <Avatar className="h-9 w-9">
@@ -47,19 +46,9 @@ export function UserNav() {
                 {initials}
               </AvatarFallback>
             </Avatar>
-            <div className="flex flex-col space-y-1">
-              <div className="flex items-center gap-1.5">
-                <p className="text-sm font-semibold leading-none">{activePersona.name}</p>
-                {activePersona.can_post_announcement && (
-                  <Badge variant="secondary" className="text-[10px] h-4 px-1.5 font-normal">
-                    <ShieldCheck className="h-2.5 w-2.5 mr-0.5 text-primary" /> Management
-                  </Badge>
-                )}
-              </div>
-              <p className="text-xs leading-none text-muted-foreground">{activePersona.email}</p>
-              <p className="text-[11px] text-muted-foreground">
-                {activePersona.department}
-              </p>
+            <div className="flex flex-col space-y-0.5">
+              <p className="text-sm font-semibold leading-none">{activePersona.name}</p>
+              <p className="text-xs text-muted-foreground">{activePersona.role}</p>
             </div>
           </div>
         </DropdownMenuLabel>
