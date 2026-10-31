@@ -14,14 +14,14 @@ from app.core.logging import logger, setup_logging
 async def lifespan(app: FastAPI):
     setup_logging()
     logger.info(f"Starting {settings.PROJECT_NAME} backend...")
-    
+
     # Ensure storage directory exists
     storage_path = Path(settings.STORAGE_DIR)
     storage_path.mkdir(parents=True, exist_ok=True)
     logger.info(f"Storage directory initialized at: {storage_path}")
-    
+
     yield
-    
+
     logger.info(f"Shutting down {settings.PROJECT_NAME} backend...")
 
 

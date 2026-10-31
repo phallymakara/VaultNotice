@@ -45,7 +45,9 @@ class ForbiddenError(APIError):
 def register_exception_handlers(app: FastAPI) -> None:
     @app.exception_handler(APIError)
     async def api_error_handler(request: Request, exc: APIError) -> JSONResponse:
-        logger.warning(f"APIError on {request.method} {request.url.path}: {exc.message} ({exc.error_code})")
+        logger.warning(
+            f"APIError on {request.method} {request.url.path}: {exc.message} ({exc.error_code})"
+        )
         return JSONResponse(
             status_code=exc.status_code,
             content={
@@ -57,8 +59,12 @@ def register_exception_handlers(app: FastAPI) -> None:
         )
 
     @app.exception_handler(RequestValidationError)
-    async def validation_error_handler(request: Request, exc: RequestValidationError) -> JSONResponse:
-        logger.warning(f"Validation error on {request.method} {request.url.path}: {exc.errors()}")
+    async def validation_error_handler(
+        request: Request, exc: RequestValidationError
+    ) -> JSONResponse:
+        logger.warning(
+            f"Validation error on {request.method} {request.url.path}: {exc.errors()}"
+        )
         return JSONResponse(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             content={
@@ -70,8 +76,12 @@ def register_exception_handlers(app: FastAPI) -> None:
         )
 
     @app.exception_handler(Exception)
-    async def general_exception_handler(request: Request, exc: Exception) -> JSONResponse:
-        logger.exception(f"Unhandled exception on {request.method} {request.url.path}: {exc!s}")
+    async def general_exception_handler(
+        request: Request, exc: Exception
+    ) -> JSONResponse:
+        logger.exception(
+            f"Unhandled exception on {request.method} {request.url.path}: {exc!s}"
+        )
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             content={

@@ -20,3 +20,4 @@ services:
 volumes:
   vaultnotice_pgdata:
     name: vaultnotice_pgdata
+

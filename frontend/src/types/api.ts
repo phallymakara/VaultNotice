@@ -24,3 +24,4 @@ export interface ApiResponse<T> {
   error_code?: string
   details?: unknown
 }
+
