@@ -45,40 +45,7 @@ export function PeopleGroupPicker({
   }
 
   return (
-    <div className="space-y-2" ref={containerRef}>
-      {/* Selected Recipients Badge List */}
-      {selectedRecipients.length > 0 && (
-        <div className="flex flex-wrap items-center gap-1.5 p-1.5 bg-background rounded-md border border-input shadow-xs animate-in fade-in-0 duration-150">
-          {selectedRecipients.map((recipient) => (
-            <Badge
-              key={recipient.id}
-              variant="secondary"
-              className="gap-1.5 py-1 px-2.5 text-xs font-normal border border-border animate-in fade-in-0 zoom-in-95 duration-150"
-            >
-              {recipient.type === "GROUP" ? (
-                <Users className="w-3 h-3 text-muted-foreground" />
-              ) : (
-                <User className="w-3 h-3 text-muted-foreground" />
-              )}
-              <span className="font-medium text-foreground">{recipient.name}</span>
-              <span className="text-[10px] text-muted-foreground uppercase">
-                {recipient.type === "GROUP" ? "Group" : "User"}
-              </span>
-              {!disabled && (
-                <button
-                  type="button"
-                  onClick={() => handleRemove(recipient.id)}
-                  className="rounded-full hover:bg-muted-foreground/20 p-0.5 ml-0.5 transition-colors cursor-pointer"
-                >
-                  <X className="w-3 h-3" />
-                  <span className="sr-only">Remove</span>
-                </button>
-              )}
-            </Badge>
-          ))}
-        </div>
-      )}
-
+    <div className="space-y-1.5" ref={containerRef}>
       {/* Search Input & Dropdown */}
       {!disabled && (
         <div className="relative">
@@ -148,6 +115,41 @@ export function PeopleGroupPicker({
               )}
             </div>
           )}
+        </div>
+      )}
+
+      {/* Selected Recipients: plain text if empty, plain badges if selected (no outer container) */}
+      {selectedRecipients.length === 0 ? (
+        <p className="text-xs text-muted-foreground">No recipients selected</p>
+      ) : (
+        <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+          {selectedRecipients.map((recipient) => (
+            <Badge
+              key={recipient.id}
+              variant="secondary"
+              className="gap-1.5 py-1 px-2.5 text-xs font-normal border border-border animate-in fade-in-0 zoom-in-95 duration-150"
+            >
+              {recipient.type === "GROUP" ? (
+                <Users className="w-3 h-3 text-muted-foreground" />
+              ) : (
+                <User className="w-3 h-3 text-muted-foreground" />
+              )}
+              <span className="font-medium text-foreground">{recipient.name}</span>
+              <span className="text-[10px] text-muted-foreground uppercase">
+                {recipient.type === "GROUP" ? "Group" : "User"}
+              </span>
+              {!disabled && (
+                <button
+                  type="button"
+                  onClick={() => handleRemove(recipient.id)}
+                  className="rounded-full hover:bg-muted-foreground/20 p-0.5 ml-0.5 transition-colors cursor-pointer"
+                >
+                  <X className="w-3 h-3" />
+                  <span className="sr-only">Remove</span>
+                </button>
+              )}
+            </Badge>
+          ))}
         </div>
       )}
     </div>
