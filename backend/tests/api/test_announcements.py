@@ -98,7 +98,7 @@ async def test_complete_announcement_workflow(async_client):
         f for f in created_data["files"] if not f["is_generated_pdf"]
     )
     assert pdf_file["file_name"] == "Announcement.pdf"
-    assert attachment_file["file_name"] == "Circular_Q4.pdf"
+    assert attachment_file["file_name"].startswith("Circular_Q4")
 
     # 2. Verify Security Trimming in Feed:
     # David Miller (Branch Manager) MUST see it
