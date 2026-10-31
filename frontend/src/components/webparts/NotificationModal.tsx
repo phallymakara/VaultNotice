@@ -1,29 +1,37 @@
+import { useState } from "react"
+import { Bell } from "lucide-react"
 import { useMyNotifications } from "@/hooks/useNotifications"
 import { Button } from "@/components/ui/button"
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
 
 interface NotificationModalProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
   onOpenAnnouncement: (id: number) => void
 }
 
 export function NotificationModal({
-  open,
-  onOpenChange,
+  open: controlledOpen,
+  onOpenChange: controlledOnOpenChange,
   onOpenAnnouncement,
 }: NotificationModalProps) {
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(false)
+  const isControlled = controlledOpen !== undefined
+  const isOpen = isControlled ? controlledOpen : uncontrolledOpen
+  const setIsOpen = isControlled ? controlledOnOpenChange! : setUncontrolledOpen
+
   const { data: notifications, isLoading } = useMyNotifications()
+  const unreadCount = notifications?.length || 0
 
   const handleOpenClick = (announcementId: number) => {
-    onOpenChange(false)
-    onOpenAnnouncement(announcementId)
+    setIsOpen(false)
+    setTimeout(() => {
+      onOpenAnnouncement(announcementId)
+    }, 50)
   }
 
   const formatTime = (dateStr: string) => {
@@ -36,16 +44,40 @@ export function NotificationModal({
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Notifications</DialogTitle>
-          <DialogDescription className="sr-only">
-            List of recent notifications
-          </DialogDescription>
-        </DialogHeader>
+    <Popover open={isOpen} onOpenChange={setIsOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          size="icon"
+          className="relative h-8 w-8 text-muted-foreground hover:text-foreground rounded-full cursor-pointer hover:bg-accent transition-all duration-150"
+          title="Notifications"
+        >
+          <Bell className="w-4 h-4" />
+          {unreadCount > 0 && (
+            <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
+              {unreadCount}
+            </span>
+          )}
+          <span className="sr-only">Notifications</span>
+        </Button>
+      </PopoverTrigger>
 
-        <div className="max-h-[60vh] overflow-y-auto space-y-3 pr-1 pt-1">
+      <PopoverContent
+        align="end"
+        side="bottom"
+        sideOffset={8}
+        className="w-[360px] sm:w-[380px] p-0 shadow-xl border border-border bg-popover"
+      >
+        <div className="flex items-center justify-between border-b border-border px-4 py-3">
+          <h3 className="font-semibold text-sm text-foreground">Notifications</h3>
+          {unreadCount > 0 && (
+            <span className="text-[11px] text-muted-foreground font-medium">
+              {unreadCount} {unreadCount === 1 ? "alert" : "alerts"}
+            </span>
+          )}
+        </div>
+
+        <div className="max-h-[380px] overflow-y-auto p-3 space-y-2.5">
           {isLoading ? (
             <div className="py-8 text-center text-xs text-muted-foreground">
               Loading notifications...
@@ -58,7 +90,7 @@ export function NotificationModal({
             notifications.map((item) => (
               <div
                 key={item.id}
-                className="rounded-lg border border-border bg-card p-3.5 space-y-2 shadow-xs"
+                className="rounded-lg border border-border bg-card p-3 space-y-1.5 shadow-xs transition-colors hover:bg-muted/30"
               >
                 <div className="flex items-center justify-between text-xs text-muted-foreground">
                   <span className="font-medium text-foreground">
@@ -67,7 +99,7 @@ export function NotificationModal({
                   <span>{formatTime(item.sent_at)}</span>
                 </div>
 
-                <div className="text-sm font-semibold text-foreground">
+                <div className="text-sm font-semibold text-foreground leading-snug">
                   {item.announcement_title}
                 </div>
 
@@ -75,11 +107,11 @@ export function NotificationModal({
                   Posted by: {item.author_name}
                 </div>
 
-                <div className="pt-1">
+                <div className="pt-1.5">
                   <Button
                     size="sm"
                     variant="outline"
-                    className="w-full text-xs h-8 font-medium cursor-pointer"
+                    className="w-full text-xs h-7 font-medium cursor-pointer"
                     onClick={() => handleOpenClick(item.announcement_id)}
                   >
                     Open on Web Portal
@@ -89,7 +121,7 @@ export function NotificationModal({
             ))
           )}
         </div>
-      </DialogContent>
-    </Dialog>
+      </PopoverContent>
+    </Popover>
   )
 }

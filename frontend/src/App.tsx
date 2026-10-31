@@ -1,6 +1,5 @@
 import { useState } from "react"
 import { usePersona } from "@/context/PersonaContext"
-import { useMyNotifications } from "@/hooks/useNotifications"
 import { Button } from "@/components/ui/button"
 import { UserNav } from "@/components/layout/UserNav"
 import { AnnouncementsLibrary } from "@/components/webparts/AnnouncementsLibrary"
@@ -10,21 +9,15 @@ import { AuditLogViewer } from "@/components/webparts/AuditLogViewer"
 import { TemplateManager } from "@/components/webparts/TemplateManager"
 import { 
   Lock, 
-  Bell, 
   Shield,
   LayoutTemplate
 } from "lucide-react"
 
 export default function App() {
   const { activePersona } = usePersona()
-  const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false)
   const [selectedAnnouncementId, setSelectedAnnouncementId] = useState<number | null>(null)
   const [isFolderModalOpen, setIsFolderModalOpen] = useState(false)
   const [activeTab, setActiveTab] = useState<"announcements" | "templates" | "audit">("announcements")
-
-  // Notifications query for active persona (real-time live updates)
-  const { data: notifications } = useMyNotifications()
-  const unreadCount = notifications?.length || 0
 
   const handleOpenAnnouncement = (announcementId: number) => {
     setSelectedAnnouncementId(announcementId)
@@ -76,24 +69,7 @@ export default function App() {
 
           {/* Right: Notifications & User Profile Menu */}
           <div className="flex items-center space-x-3">
-            {/* Notifications Trigger */}
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => setIsNotificationModalOpen(true)}
-              className="relative h-8 w-8 text-muted-foreground hover:text-foreground rounded-full"
-              title="Notifications"
-            >
-              <Bell className="w-4 h-4" />
-              {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
-                  {unreadCount}
-                </span>
-              )}
-              <span className="sr-only">Notifications</span>
-            </Button>
-
-            {/* User Profile Menu */}
+            <NotificationModal onOpenAnnouncement={handleOpenAnnouncement} />
             <UserNav />
           </div>
         </div>
@@ -108,13 +84,6 @@ export default function App() {
         {activeTab === "templates" && isAdmin && <TemplateManager />}
         {activeTab === "audit" && isAdmin && <AuditLogViewer />}
       </main>
-
-      {/* Notification Modal */}
-      <NotificationModal
-        open={isNotificationModalOpen}
-        onOpenChange={setIsNotificationModalOpen}
-        onOpenAnnouncement={handleOpenAnnouncement}
-      />
 
       {/* Inside Folder Explorer Modal */}
       {selectedAnnouncementId && (
