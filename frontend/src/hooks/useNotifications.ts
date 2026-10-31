@@ -8,7 +8,8 @@ export function useMyNotifications() {
   return useQuery({
     queryKey: ["notifications", activePersona.id],
     queryFn: () => apiClient.getMyNotifications(),
-    refetchInterval: 10000,
+    refetchInterval: 2000,
+    refetchOnWindowFocus: true,
   })
 }
 

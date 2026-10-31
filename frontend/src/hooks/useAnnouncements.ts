@@ -8,6 +8,8 @@ export function useAnnouncements(limit: number = 50, offset: number = 0) {
   return useQuery({
     queryKey: ["announcements", activePersona.id, limit, offset],
     queryFn: () => apiClient.getAnnouncements(limit, offset),
+    refetchInterval: 2000,
+    refetchOnWindowFocus: true,
   })
 }
 
@@ -18,6 +20,7 @@ export function useAnnouncementDetails(id: number | null) {
     queryKey: ["announcement", id, activePersona.id],
     queryFn: () => (id ? apiClient.getAnnouncementDetails(id) : Promise.reject("No ID")),
     enabled: !!id,
+    refetchInterval: 3000,
   })
 }
 
@@ -40,6 +43,8 @@ export function useAuditLogs(limit: number = 50, offset: number = 0) {
   return useQuery({
     queryKey: ["audit-logs", activePersona.id, limit, offset],
     queryFn: () => apiClient.getAuditLogs(limit, offset),
+    refetchInterval: 2000,
+    refetchOnWindowFocus: true,
   })
 }
 

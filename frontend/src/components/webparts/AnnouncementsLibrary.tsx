@@ -2,7 +2,6 @@ import { useState, useMemo } from "react"
 import { 
   Folder, 
   FolderLock, 
-  RefreshCw, 
   Search,
   Plus
 } from "lucide-react"
@@ -29,7 +28,7 @@ export function AnnouncementsLibrary() {
   const [searchQuery, setSearchQuery] = useState("")
 
   const { activePersona } = usePersona()
-  const { data: announcements, isLoading, isRefetching, refetch } = useAnnouncements()
+  const { data: announcements, isLoading } = useAnnouncements()
 
   // Filter announcements by search query
   const filteredAnnouncements = useMemo(() => {
@@ -65,41 +64,8 @@ export function AnnouncementsLibrary() {
 
   return (
     <div className="space-y-4">
-      {/* Action Header & Search Controls */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2">
-        <div>
-          <h2 className="text-xl font-semibold tracking-tight">Company Announcements</h2>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            Official executive notices, policy circulars, and departmental memos.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2 self-start sm:self-auto">
-          {activePersona.can_post_announcement && (
-            <Button
-              size="sm"
-              onClick={() => setIsCreateModalOpen(true)}
-              className="gap-1.5 shadow-xs"
-            >
-              <Plus className="w-3.5 h-3.5" /> New Announcement
-            </Button>
-          )}
-
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => refetch()}
-            disabled={isLoading || isRefetching}
-            className="gap-1.5 h-9"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 ${isRefetching ? "animate-spin" : ""}`} />
-            <span className="hidden sm:inline">Refresh</span>
-          </Button>
-        </div>
-      </div>
-
-      {/* Search & Filter Bar */}
-      <div className="flex items-center gap-3">
+      {/* Search & Action Bar */}
+      <div className="flex items-center justify-between gap-3">
         <div className="relative flex-1">
           <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
           <Input
@@ -109,6 +75,16 @@ export function AnnouncementsLibrary() {
             className="pl-9 h-9 text-xs"
           />
         </div>
+
+        {activePersona.can_post_announcement && (
+          <Button
+            size="sm"
+            onClick={() => setIsCreateModalOpen(true)}
+            className="gap-1.5 shadow-xs shrink-0"
+          >
+            <Plus className="w-3.5 h-3.5" /> New Announcement
+          </Button>
+        )}
       </div>
 
       {/* Table Card */}
