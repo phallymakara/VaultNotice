@@ -11,7 +11,7 @@
 
 ### Key Business Benefits:
 * **Information Security & Leak Prevention:** Sensitive corporate memos, circulars, and policies remain hosted safely inside the portal. Confidential files are never broadcast directly as email attachments.
-* **Targeted Audience Distribution:** Management can direct announcements to specific departments, employee groups (e.g., *All Branch Managers*), or individuals. Staff only see notices meant for them.
+* **Targeted Audience Distribution:** Management can direct announcements to specific departments, employee groups (such as *All Branch Managers*), or individuals. Staff only see notices meant for them.
 * **Instant Permission Governance:** When an employee joins or moves to a new department, their access updates automatically to show all current and historical notices for that group.
 * **Standardized Executive Communication:** Pre-approved company templates ensure consistent branding, structure, and clarity for all official notices.
 
@@ -65,7 +65,7 @@ Switch between the following corporate profiles at any time using the **Profile 
    - Type `"Branch"`: The directory suggests the group **All Branch Managers**. Click to select.
    - Both recipient badges now appear under Target Audience.
 6. **Attach Official Documents:**
-   - Click the file attachment area or drag and drop a sample document (e.g., a PDF or Word document).
+   - Click the file attachment area or drag and drop a sample document (such as an operational circular or policy PDF).
    - The file appears with its filename and formatted file size.
 7. **Publish the Notice:**
    - Click **"Publish Announcement"**.

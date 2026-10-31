@@ -105,7 +105,7 @@ export function AnnouncementsLibrary() {
           <Input
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search announcements by title or author..."
+            placeholder="Search announcements"
             className="pl-9 h-9 text-xs"
           />
         </div>

@@ -163,7 +163,7 @@ export function PostAnnouncementDialog({
               disabled={postMutation.isPending || isLoadingTemplates}
             >
               <SelectTrigger id="template-select" className="h-9 text-xs">
-                <SelectValue placeholder="Choose a template or start blank" />
+                <SelectValue placeholder="Select template" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="blank">Blank Announcement (No template)</SelectItem>
@@ -186,7 +186,7 @@ export function PostAnnouncementDialog({
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               disabled={postMutation.isPending}
-              placeholder="e.g. Q4 Executive Branch Operations Directive"
+              placeholder="Enter announcement title"
               className="h-9 text-xs"
             />
           </div>
@@ -214,7 +214,7 @@ export function PostAnnouncementDialog({
               onChange={(e) => setMessage(e.target.value)}
               disabled={postMutation.isPending}
               rows={5}
-              placeholder="Write the announcement message and details here..."
+              placeholder="Enter announcement message"
               className="text-xs font-sans leading-relaxed resize-y"
             />
           </div>

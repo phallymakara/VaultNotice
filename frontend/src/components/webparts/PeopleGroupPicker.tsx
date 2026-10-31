@@ -50,7 +50,7 @@ export function PeopleGroupPicker({
       <div className="flex flex-wrap items-center gap-1.5 min-h-[40px] p-2 bg-background rounded-md border border-input shadow-xs">
         {selectedRecipients.length === 0 ? (
           <span className="text-xs text-muted-foreground select-none px-1">
-            Search and select targeted users or groups below...
+            No recipients selected
           </span>
         ) : (
           selectedRecipients.map((recipient) => (
@@ -96,7 +96,7 @@ export function PeopleGroupPicker({
                 setIsOpen(true)
               }}
               onFocus={() => setIsOpen(true)}
-              placeholder="Search directory by name, branch, or department..."
+              placeholder="Search recipients by name or group"
               className="w-full pl-9 pr-3 py-2 text-xs rounded-md border border-input bg-background shadow-xs placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
             />
           </div>
