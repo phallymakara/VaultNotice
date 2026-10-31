@@ -66,9 +66,9 @@ export function NotificationModal({
         align="end"
         side="bottom"
         sideOffset={8}
-        className="w-[360px] sm:w-[380px] p-0 shadow-xl border border-border bg-popover"
+        className="w-[360px] sm:w-[380px] p-0 shadow-xl border border-border bg-popover flex flex-col max-h-[85vh]"
       >
-        <div className="flex items-center justify-between border-b border-border px-4 py-3">
+        <div className="flex items-center justify-between border-b border-border px-4 py-3 shrink-0">
           <h3 className="font-semibold text-sm text-foreground">Notifications</h3>
           {unreadCount > 0 && (
             <span className="text-[11px] text-muted-foreground font-medium">
@@ -77,7 +77,7 @@ export function NotificationModal({
           )}
         </div>
 
-        <div className="max-h-[380px] overflow-y-auto p-3 space-y-2.5">
+        <div className="max-h-[500px] overflow-y-auto p-3 space-y-2.5 flex-1">
           {isLoading ? (
             <div className="py-8 text-center text-xs text-muted-foreground">
               Loading notifications...
