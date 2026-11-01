@@ -263,38 +263,34 @@ export function AnnouncementDetailPage({
           {announcement.title}
         </h1>
 
-        {/* Polished Metadata Bar */}
-        <div className="flex flex-wrap items-center gap-y-2.5 gap-x-4 text-xs text-muted-foreground">
-          {/* Directive Type Pill */}
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary border border-primary/15">
-            <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-            {noticeType}
-          </span>
+        {/* Metadata Details (each item on its own row) */}
+        <div className="flex flex-col space-y-2 text-xs text-muted-foreground pt-1">
+          {/* Row 1: Type */}
+          <div className="flex items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary border border-primary/15">
+              <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+              {noticeType}
+            </span>
+          </div>
 
-          <span className="text-border hidden sm:inline">•</span>
-
-          {/* Author with Avatar */}
-          <div className="flex items-center gap-1.5 text-foreground">
+          {/* Row 2: Author */}
+          <div className="flex items-center gap-2 text-foreground">
             <div className="h-5 w-5 rounded-full bg-primary/10 text-primary flex items-center justify-center font-semibold text-[10px] shrink-0">
               {authorInitials}
             </div>
-            <span className="font-medium">{announcement.author_name}</span>
+            <span className="font-medium text-xs">{announcement.author_name}</span>
           </div>
 
-          <span className="text-border hidden sm:inline">•</span>
-
-          {/* Date & Time */}
-          <div className="flex items-center gap-1.5">
-            <Calendar className="w-3.5 h-3.5" />
+          {/* Row 3: Date & Time */}
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <Calendar className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
             <span>{formattedDate}</span>
             <span className="text-muted-foreground/60">at</span>
             <span>{formattedTime}</span>
           </div>
 
-          <span className="text-border hidden sm:inline">•</span>
-
-          {/* Target Audience / Recipients */}
-          <div className="flex items-center gap-1.5">
+          {/* Row 4: Target Recipients */}
+          <div className="flex items-center gap-2 text-xs">
             <span className="text-muted-foreground">Target:</span>
             <div className="flex items-center gap-1">
               {announcement.target_summary.map((t, idx) => (
