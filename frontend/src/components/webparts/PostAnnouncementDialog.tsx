@@ -229,14 +229,14 @@ export function PostAnnouncementDialog({
             />
             <div
               onClick={() => fileInputRef.current?.click()}
-              className="border border-dashed border-border rounded-lg p-5 text-center hover:bg-muted/40 transition-colors cursor-pointer flex flex-col items-center justify-center gap-1.5"
+              className="border border-dashed border-border rounded-lg p-3.5 text-center hover:bg-muted/40 transition-colors cursor-pointer flex flex-col items-center justify-center gap-1"
             >
-              <UploadCloud className="w-5 h-5 text-muted-foreground" />
+              <UploadCloud className="w-4 h-4 text-muted-foreground" />
               <p className="text-xs font-medium text-foreground">
-                Click to browse files or drag and drop
+                Upload or drop files
               </p>
               <p className="text-[11px] text-muted-foreground">
-                Supported formats: PDF, Word, Excel, Images (Max 25MB each)
+                PDF, Office, Images (Max 25MB)
               </p>
             </div>
 
