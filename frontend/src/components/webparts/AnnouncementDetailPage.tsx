@@ -242,32 +242,15 @@ export function AnnouncementDetailPage({
   return (
     <div className="space-y-6 pb-12 animate-fade-in">
       {/* Top Navigation Bar / Breadcrumb */}
-      <div className="flex items-center justify-between border-b pb-4">
+      <div>
         <Button
           variant="ghost"
           size="sm"
           onClick={onBack}
-          className="text-xs h-8 gap-1.5 hover:bg-muted cursor-pointer"
+          className="text-xs h-8 -ml-2 gap-1.5 hover:bg-muted cursor-pointer text-muted-foreground hover:text-foreground"
         >
           <ArrowLeft className="w-4 h-4" /> Back to Announcements
         </Button>
-
-        {selectedFile && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => handleDownloadFile(selectedFile)}
-            disabled={downloadingFileId === selectedFile.id}
-            className="text-xs h-8 gap-1.5 cursor-pointer"
-          >
-            {downloadingFileId === selectedFile.id ? (
-              <Loader2 className="w-3.5 h-3.5 animate-spin" />
-            ) : (
-              <Download className="w-3.5 h-3.5" />
-            )}
-            Download {selectedFile.file_name}
-          </Button>
-        )}
       </div>
 
       {/* Main Header */}
@@ -467,3 +450,4 @@ export function AnnouncementDetailPage({
     </div>
   )
 }
+
