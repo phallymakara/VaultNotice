@@ -3,7 +3,7 @@ import { usePersona } from "@/context/PersonaContext"
 import { Button } from "@/components/ui/button"
 import { UserNav } from "@/components/layout/UserNav"
 import { AnnouncementsLibrary } from "@/components/webparts/AnnouncementsLibrary"
-import { AnnouncementFolderModal } from "@/components/webparts/AnnouncementFolderModal"
+import { AnnouncementDetailPage } from "@/components/webparts/AnnouncementDetailPage"
 import { NotificationModal } from "@/components/webparts/NotificationModal"
 import { AuditLogViewer } from "@/components/webparts/AuditLogViewer"
 import { TemplateManager } from "@/components/webparts/TemplateManager"
@@ -16,12 +16,20 @@ import {
 export default function App() {
   const { activePersona } = usePersona()
   const [selectedAnnouncementId, setSelectedAnnouncementId] = useState<number | null>(null)
-  const [isFolderModalOpen, setIsFolderModalOpen] = useState(false)
   const [activeTab, setActiveTab] = useState<"announcements" | "templates" | "audit">("announcements")
 
   const handleOpenAnnouncement = (announcementId: number) => {
     setSelectedAnnouncementId(announcementId)
-    setIsFolderModalOpen(true)
+    setActiveTab("announcements")
+  }
+
+  const handleBackToList = () => {
+    setSelectedAnnouncementId(null)
+  }
+
+  const handleBrandClick = () => {
+    setSelectedAnnouncementId(null)
+    setActiveTab("announcements")
   }
 
   const isAdmin = activePersona.role === "Portal Admin"
@@ -34,7 +42,7 @@ export default function App() {
           {/* Left: Brand & Admin Navigation */}
           <div className="flex items-center space-x-6">
             <button
-              onClick={() => setActiveTab("announcements")}
+              onClick={handleBrandClick}
               className="flex items-center space-x-2.5 hover:opacity-90 transition-opacity cursor-pointer"
             >
               <div className="h-8 w-8 rounded-lg bg-primary text-primary-foreground flex items-center justify-center shadow-xs">
@@ -49,7 +57,10 @@ export default function App() {
                 <Button
                   variant={activeTab === "templates" ? "secondary" : "ghost"}
                   size="sm"
-                  onClick={() => setActiveTab(activeTab === "templates" ? "announcements" : "templates")}
+                  onClick={() => {
+                    setSelectedAnnouncementId(null)
+                    setActiveTab(activeTab === "templates" ? "announcements" : "templates")
+                  }}
                   className="h-8 text-xs font-medium gap-1.5"
                 >
                   <LayoutTemplate className="w-3.5 h-3.5" /> Templates
@@ -58,7 +69,10 @@ export default function App() {
                 <Button
                   variant={activeTab === "audit" ? "secondary" : "ghost"}
                   size="sm"
-                  onClick={() => setActiveTab(activeTab === "audit" ? "announcements" : "audit")}
+                  onClick={() => {
+                    setSelectedAnnouncementId(null)
+                    setActiveTab(activeTab === "audit" ? "announcements" : "audit")
+                  }}
                   className="h-8 text-xs font-medium gap-1.5"
                 >
                   <Shield className="w-3.5 h-3.5" /> Audit Trail
@@ -77,22 +91,22 @@ export default function App() {
 
       {/* Main Content Area */}
       <main
-        key={`${activeTab}-${activePersona.id}`}
+        key={`${activeTab}-${activePersona.id}-${selectedAnnouncementId ?? "list"}`}
         className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 animate-fade-in"
       >
-        {activeTab === "announcements" && <AnnouncementsLibrary />}
+        {activeTab === "announcements" && (
+          selectedAnnouncementId ? (
+            <AnnouncementDetailPage
+              announcementId={selectedAnnouncementId}
+              onBack={handleBackToList}
+            />
+          ) : (
+            <AnnouncementsLibrary onSelectAnnouncement={handleOpenAnnouncement} />
+          )
+        )}
         {activeTab === "templates" && isAdmin && <TemplateManager />}
         {activeTab === "audit" && isAdmin && <AuditLogViewer />}
       </main>
-
-      {/* Inside Folder Explorer Modal */}
-      {selectedAnnouncementId && (
-        <AnnouncementFolderModal
-          announcementId={selectedAnnouncementId}
-          open={isFolderModalOpen}
-          onOpenChange={setIsFolderModalOpen}
-        />
-      )}
     </div>
   )
 }

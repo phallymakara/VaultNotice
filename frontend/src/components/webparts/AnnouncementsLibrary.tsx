@@ -91,7 +91,11 @@ function getFullRecipientNames(targets?: string[]): string {
   return targets.map((t) => FALLBACK_NAME_MAP[t] || t).join(", ")
 }
 
-export function AnnouncementsLibrary() {
+interface AnnouncementsLibraryProps {
+  onSelectAnnouncement?: (id: number) => void
+}
+
+export function AnnouncementsLibrary({ onSelectAnnouncement }: AnnouncementsLibraryProps = {}) {
   const [selectedAnnouncementId, setSelectedAnnouncementId] = useState<number | null>(null)
   const [isFolderModalOpen, setIsFolderModalOpen] = useState(false)
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
@@ -115,8 +119,12 @@ export function AnnouncementsLibrary() {
   }, [announcements, searchQuery])
 
   const handleOpenFolder = (id: number) => {
-    setSelectedAnnouncementId(id)
-    setIsFolderModalOpen(true)
+    if (onSelectAnnouncement) {
+      onSelectAnnouncement(id)
+    } else {
+      setSelectedAnnouncementId(id)
+      setIsFolderModalOpen(true)
+    }
   }
 
   const formatDate = (dateString: string) => {
