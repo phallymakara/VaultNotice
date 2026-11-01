@@ -9,6 +9,9 @@ import {
   Loader2,
   AlertCircle,
   File,
+  ShieldCheck,
+  FolderLock,
+  CheckCircle2,
 } from "lucide-react"
 import { useAnnouncementDetails } from "@/hooks/useAnnouncements"
 import { apiClient } from "@/services/apiClient"
@@ -167,6 +170,16 @@ export function AnnouncementDetailPage({
     return <File className="w-4 h-4 text-muted-foreground shrink-0" />
   }
 
+  const getFileTypeLabel = (fileName: string, isPdf: boolean) => {
+    if (isPdf) return "Official PDF Document"
+    const lower = fileName.toLowerCase()
+    if (lower.endsWith(".xlsx") || lower.endsWith(".xls")) return "Microsoft Excel Spreadsheet"
+    if (lower.endsWith(".csv")) return "Comma-Separated Values Data"
+    if (lower.endsWith(".docx") || lower.endsWith(".doc")) return "Microsoft Word Document"
+    if (lower.endsWith(".png") || lower.endsWith(".jpg") || lower.endsWith(".jpeg")) return "Image Attachment"
+    return "Document Attachment"
+  }
+
   const handleDownloadFile = async (file: FileItem) => {
     setDownloadingFileId(file.id)
     try {
@@ -236,6 +249,7 @@ export function AnnouncementDetailPage({
     .slice(0, 2)
     .toUpperCase()
 
+  const totalFilesSize = announcement.files.reduce((acc, f) => acc + f.file_size, 0)
   const isPdf = selectedFile?.is_generated_pdf || selectedFile?.file_name.toLowerCase().endsWith(".pdf")
   const isImage =
     selectedFile?.file_name.toLowerCase().endsWith(".png") ||
@@ -245,8 +259,8 @@ export function AnnouncementDetailPage({
 
   return (
     <div className="space-y-8 pb-16 animate-fade-in max-w-6xl mx-auto">
-      {/* Top Back Navigation */}
-      <div>
+      {/* Top Back Navigation & Reference Header */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <Button
           variant="ghost"
           size="sm"
@@ -255,13 +269,26 @@ export function AnnouncementDetailPage({
         >
           <ArrowLeft className="w-4 h-4" /> Back to Announcements
         </Button>
+
+        <div className="flex items-center gap-3 text-xs text-muted-foreground">
+          <span className="inline-flex items-center gap-1.5 font-medium text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
+            <CheckCircle2 className="w-3.5 h-3.5" /> Published
+          </span>
+          <span className="font-mono text-muted-foreground">Notice #{announcement.id}</span>
+        </div>
       </div>
 
       {/* Modern Executive Header */}
       <div className="space-y-5">
-        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground leading-tight">
-          {announcement.title}
-        </h1>
+        <div className="space-y-2">
+          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground leading-tight">
+            {announcement.title}
+          </h1>
+          <p className="text-xs text-muted-foreground font-mono flex items-center gap-1.5">
+            <FolderLock className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+            <span>Folder: {announcement.folder_name}</span>
+          </p>
+        </div>
 
         {/* Structured Metadata Card */}
         <div className="rounded-xl border border-border bg-card p-6 sm:p-7 shadow-xs">
@@ -329,9 +356,12 @@ export function AnnouncementDetailPage({
 
       {/* Message Content Section */}
       <div className="rounded-xl border border-border bg-card p-6 sm:p-7 shadow-xs space-y-3">
-        <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-          Message
-        </span>
+        <div className="flex items-center justify-between border-b pb-3">
+          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+            Message
+          </span>
+          <span className="text-xs text-muted-foreground">Official Body</span>
+        </div>
         <div className="text-base sm:text-lg leading-relaxed whitespace-pre-wrap text-foreground font-normal pt-1">
           {announcement.message_content}
         </div>
@@ -339,11 +369,14 @@ export function AnnouncementDetailPage({
 
       {/* Unified Document Workspace & Preview */}
       {announcement.files.length > 0 && (
-        <div className="rounded-xl border border-border bg-card overflow-hidden shadow-xs">
+        <div className="rounded-xl border border-border bg-card overflow-hidden shadow-xs space-y-0">
           {/* File Tabs & Actions Bar */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-border bg-muted/40 px-4 py-3 gap-3">
             {/* Scrollable File Selector Tabs */}
             <div className="flex items-center gap-2 overflow-x-auto scrollbar-none py-0.5">
+              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mr-1 shrink-0">
+                Files ({announcement.files.length} • {formatFileSize(totalFilesSize)}):
+              </span>
               {announcement.files.map((file) => {
                 const isSelected = selectedFile?.id === file.id
                 return (
@@ -392,6 +425,21 @@ export function AnnouncementDetailPage({
             )}
           </div>
 
+          {/* Active File Inspector Info Bar */}
+          {selectedFile && (
+            <div className="px-5 py-2.5 bg-muted/20 border-b border-border/60 flex flex-wrap items-center justify-between gap-3 text-xs text-muted-foreground">
+              <div className="flex items-center gap-3">
+                <span className="font-medium text-foreground">{getFileTypeLabel(selectedFile.file_name, selectedFile.is_generated_pdf)}</span>
+                <span>•</span>
+                <span>Size: <strong className="text-foreground font-medium">{formatFileSize(selectedFile.file_size)}</strong></span>
+              </div>
+              <div className="flex items-center gap-1.5 text-muted-foreground">
+                <ShieldCheck className="w-3.5 h-3.5 text-primary" />
+                <span>Zero-Attachment Protected (Secured in Portal)</span>
+              </div>
+            </div>
+          )}
+
           {/* Active File Preview Pane */}
           <div className="p-4 bg-background">
             {isLoadingPreview ? (
@@ -429,23 +477,26 @@ export function AnnouncementDetailPage({
                 />
               </div>
             ) : (
-              <div className="py-24 text-center space-y-4">
-                <div className="w-14 h-14 rounded-full bg-muted flex items-center justify-center mx-auto text-muted-foreground">
+              <div className="py-24 text-center space-y-4 max-w-md mx-auto">
+                <div className="w-16 h-16 rounded-2xl bg-muted/80 border border-border flex items-center justify-center mx-auto text-muted-foreground">
                   {selectedFile && getFileIcon(selectedFile.file_name, false)}
                 </div>
-                <div>
-                  <p className="text-base font-medium text-foreground">{selectedFile?.file_name}</p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Preview is not available directly in browser for this file type ({selectedFile ? formatFileSize(selectedFile.file_size) : ""}).
+                <div className="space-y-1">
+                  <p className="text-lg font-semibold text-foreground">{selectedFile?.file_name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {selectedFile ? getFileTypeLabel(selectedFile.file_name, false) : "Attached File"} • {selectedFile ? formatFileSize(selectedFile.file_size) : ""}
+                  </p>
+                  <p className="text-xs text-muted-foreground pt-1">
+                    This file format is designed to be opened with its native desktop application.
                   </p>
                 </div>
                 <Button
                   variant="default"
                   size="sm"
-                  className="text-xs sm:text-sm gap-2 font-medium"
+                  className="text-xs sm:text-sm gap-2 font-medium px-5 h-9"
                   onClick={() => selectedFile && handleDownloadFile(selectedFile)}
                 >
-                  <Download className="w-4 h-4" /> Download {selectedFile?.file_name}
+                  <Download className="w-4 h-4" /> Download and Open
                 </Button>
               </div>
             )}

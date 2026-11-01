@@ -1,5 +1,5 @@
-import { useState } from "react"
 import { usePersona } from "@/context/PersonaContext"
+import { useAppRouter } from "@/hooks/useAppRouter"
 import { Button } from "@/components/ui/button"
 import { UserNav } from "@/components/layout/UserNav"
 import { AnnouncementsLibrary } from "@/components/webparts/AnnouncementsLibrary"
@@ -15,22 +15,13 @@ import {
 
 export default function App() {
   const { activePersona } = usePersona()
-  const [selectedAnnouncementId, setSelectedAnnouncementId] = useState<number | null>(null)
-  const [activeTab, setActiveTab] = useState<"announcements" | "templates" | "audit">("announcements")
-
-  const handleOpenAnnouncement = (announcementId: number) => {
-    setSelectedAnnouncementId(announcementId)
-    setActiveTab("announcements")
-  }
-
-  const handleBackToList = () => {
-    setSelectedAnnouncementId(null)
-  }
-
-  const handleBrandClick = () => {
-    setSelectedAnnouncementId(null)
-    setActiveTab("announcements")
-  }
+  const {
+    activeTab,
+    selectedAnnouncementId,
+    navigateToAnnouncement,
+    navigateToAnnouncementsList,
+    navigateToTab,
+  } = useAppRouter()
 
   const isAdmin = activePersona.role === "Portal Admin"
 
@@ -42,7 +33,7 @@ export default function App() {
           {/* Left: Brand & Admin Navigation */}
           <div className="flex items-center space-x-6">
             <button
-              onClick={handleBrandClick}
+              onClick={navigateToAnnouncementsList}
               className="flex items-center space-x-2.5 hover:opacity-90 transition-opacity cursor-pointer"
             >
               <div className="h-8 w-8 rounded-lg bg-primary text-primary-foreground flex items-center justify-center shadow-xs">
@@ -57,10 +48,7 @@ export default function App() {
                 <Button
                   variant={activeTab === "templates" ? "secondary" : "ghost"}
                   size="sm"
-                  onClick={() => {
-                    setSelectedAnnouncementId(null)
-                    setActiveTab(activeTab === "templates" ? "announcements" : "templates")
-                  }}
+                  onClick={() => navigateToTab(activeTab === "templates" ? "announcements" : "templates")}
                   className="h-8 text-xs font-medium gap-1.5"
                 >
                   <LayoutTemplate className="w-3.5 h-3.5" /> Templates
@@ -69,10 +57,7 @@ export default function App() {
                 <Button
                   variant={activeTab === "audit" ? "secondary" : "ghost"}
                   size="sm"
-                  onClick={() => {
-                    setSelectedAnnouncementId(null)
-                    setActiveTab(activeTab === "audit" ? "announcements" : "audit")
-                  }}
+                  onClick={() => navigateToTab(activeTab === "audit" ? "announcements" : "audit")}
                   className="h-8 text-xs font-medium gap-1.5"
                 >
                   <Shield className="w-3.5 h-3.5" /> Audit Trail
@@ -83,7 +68,7 @@ export default function App() {
 
           {/* Right: Notifications & User Profile Menu */}
           <div className="flex items-center space-x-3">
-            <NotificationModal onOpenAnnouncement={handleOpenAnnouncement} />
+            <NotificationModal onOpenAnnouncement={navigateToAnnouncement} />
             <UserNav />
           </div>
         </div>
@@ -98,10 +83,10 @@ export default function App() {
           selectedAnnouncementId ? (
             <AnnouncementDetailPage
               announcementId={selectedAnnouncementId}
-              onBack={handleBackToList}
+              onBack={navigateToAnnouncementsList}
             />
           ) : (
-            <AnnouncementsLibrary onSelectAnnouncement={handleOpenAnnouncement} />
+            <AnnouncementsLibrary onSelectAnnouncement={navigateToAnnouncement} />
           )
         )}
         {activeTab === "templates" && isAdmin && <TemplateManager />}
