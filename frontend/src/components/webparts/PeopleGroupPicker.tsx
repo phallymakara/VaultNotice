@@ -98,13 +98,9 @@ export function PeopleGroupPicker({
                           )}
                         </div>
                         <div>
-                          <div className="font-medium text-foreground flex items-center gap-1.5">
+                          <div className="font-medium text-foreground">
                             {item.name}
-                            <Badge variant="outline" className="text-[10px] py-0 px-1 font-normal">
-                              {item.type === "GROUP" ? "Security Group" : "Employee"}
-                            </Badge>
                           </div>
-                          <div className="text-[11px] text-muted-foreground">{item.details}</div>
                         </div>
                       </div>
 
@@ -135,9 +131,6 @@ export function PeopleGroupPicker({
                 <User className="w-3 h-3 text-muted-foreground" />
               )}
               <span className="font-medium text-foreground">{recipient.name}</span>
-              <span className="text-[10px] text-muted-foreground uppercase">
-                {recipient.type === "GROUP" ? "Group" : "User"}
-              </span>
               {!disabled && (
                 <button
                   type="button"
