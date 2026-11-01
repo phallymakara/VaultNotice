@@ -119,11 +119,11 @@ export function AnnouncementsLibrary() {
           <Table>
             <TableHeader>
               <TableRow className="hover:bg-transparent">
-                <TableHead className="w-[45%] text-xs font-semibold">Notice Title</TableHead>
-                <TableHead className="text-xs font-semibold">Published By</TableHead>
-                <TableHead className="text-xs font-semibold">Date</TableHead>
-                <TableHead className="text-xs font-semibold">Shared With</TableHead>
-                <TableHead className="text-xs font-semibold text-center">Attachments</TableHead>
+                <TableHead className="w-[45%] text-xs font-semibold">Title</TableHead>
+                <TableHead className="text-xs font-semibold">Author</TableHead>
+                <TableHead className="text-xs font-semibold">Date Posted</TableHead>
+                <TableHead className="text-xs font-semibold">Recipients</TableHead>
+                <TableHead className="text-xs font-semibold text-center">Files</TableHead>
                 <TableHead className="text-xs font-semibold text-right">Action</TableHead>
               </TableRow>
             </TableHeader>

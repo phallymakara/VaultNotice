@@ -52,8 +52,8 @@ export function AuditLogViewer() {
                 <TableHead className="w-16 text-xs font-semibold">Ref #</TableHead>
                 <TableHead className="text-xs font-semibold">Subject</TableHead>
                 <TableHead className="text-xs font-semibold">Author</TableHead>
-                <TableHead className="text-xs font-semibold">Shared With</TableHead>
-                <TableHead className="text-xs font-semibold text-center">Attachments</TableHead>
+                <TableHead className="text-xs font-semibold">Recipients</TableHead>
+                <TableHead className="text-xs font-semibold text-center">Files</TableHead>
                 <TableHead className="text-xs font-semibold">Date & Time</TableHead>
                 <TableHead className="text-xs font-semibold text-right">Delivery</TableHead>
               </TableRow>
