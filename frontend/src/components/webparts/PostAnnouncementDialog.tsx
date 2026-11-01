@@ -162,10 +162,10 @@ export function PostAnnouncementDialog({
                 <SelectValue placeholder="Select template" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="blank">Blank Announcement (No template)</SelectItem>
+                <SelectItem value="blank">Blank Announcement</SelectItem>
                 {templates?.map((t) => (
                   <SelectItem key={t.id} value={t.id.toString()}>
-                    [{t.category}] {t.name}
+                    {t.name}
                   </SelectItem>
                 ))}
               </SelectContent>

@@ -34,9 +34,6 @@ export function TemplateManager() {
                   <FileText className="w-4 h-4 text-muted-foreground" />
                   <span className="font-semibold text-foreground text-sm">{tpl.name}</span>
                 </div>
-                <Badge variant="outline" className="text-[10px] font-normal">
-                  {tpl.category}
-                </Badge>
               </div>
 
               <div className="text-xs bg-muted/40 p-2.5 rounded-md border border-border/60">
@@ -54,7 +51,6 @@ export function TemplateManager() {
                 <Badge variant="secondary" className="text-[10px] font-normal">
                   Standard Template
                 </Badge>
-                <span className="text-[11px] text-muted-foreground">{tpl.category}</span>
               </div>
             </div>
           ))}
