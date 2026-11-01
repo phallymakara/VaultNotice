@@ -258,65 +258,81 @@ export function AnnouncementDetailPage({
       </div>
 
       {/* Modern Executive Header */}
-      <div className="space-y-3.5">
+      <div className="space-y-4">
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
           {announcement.title}
         </h1>
 
-        {/* Metadata Details (each item on its own row) */}
-        <div className="flex flex-col space-y-2 text-xs text-muted-foreground pt-1">
-          {/* Row 1: Type */}
-          <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary border border-primary/15">
-              <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-              {noticeType}
-            </span>
-          </div>
-
-          {/* Row 2: Author */}
-          <div className="flex items-center gap-2 text-foreground">
-            <div className="h-5 w-5 rounded-full bg-primary/10 text-primary flex items-center justify-center font-semibold text-[10px] shrink-0">
-              {authorInitials}
+        {/* Structured Metadata Card */}
+        <div className="rounded-xl border border-border bg-card p-4 sm:p-5 shadow-xs">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Created Date */}
+            <div className="space-y-1">
+              <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+                Created Date
+              </span>
+              <div className="flex items-center gap-1.5 text-xs text-foreground">
+                <Calendar className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                <span className="font-medium">{formattedDate}</span>
+                <span className="text-muted-foreground">at</span>
+                <span className="text-muted-foreground">{formattedTime}</span>
+              </div>
             </div>
-            <span className="font-medium text-xs">{announcement.author_name}</span>
-          </div>
 
-          {/* Row 3: Date & Time */}
-          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <Calendar className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
-            <span>{formattedDate}</span>
-            <span className="text-muted-foreground/60">at</span>
-            <span>{formattedTime}</span>
-          </div>
+            {/* To Whom */}
+            <div className="space-y-1">
+              <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+                To
+              </span>
+              <div className="flex items-center gap-1.5 flex-wrap">
+                {announcement.target_summary.map((t, idx) => (
+                  <div key={idx} className="flex items-center gap-1.5" title={FALLBACK_NAME_MAP[t] || t}>
+                    <span className="inline-flex items-center justify-center min-w-6 h-6 px-1.5 rounded-full bg-muted text-foreground text-[10px] font-semibold leading-none">
+                      {getShortRecipient(t)}
+                    </span>
+                    <span className="text-xs text-foreground font-medium">
+                      {FALLBACK_NAME_MAP[t] || t}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
 
-          {/* Row 4: Target Recipients */}
-          <div className="flex items-center gap-2 text-xs">
-            <span className="text-muted-foreground">Target:</span>
-            <div className="flex items-center gap-1">
-              {announcement.target_summary.map((t, idx) => (
-                <span
-                  key={idx}
-                  title={FALLBACK_NAME_MAP[t] || t}
-                  className="inline-flex items-center justify-center min-w-6 h-6 px-1.5 rounded-full bg-muted text-foreground text-[10px] font-medium leading-none"
-                >
-                  {getShortRecipient(t)}
+            {/* Type */}
+            <div className="space-y-1">
+              <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+                Type
+              </span>
+              <div>
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary border border-primary/20">
+                  <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+                  {noticeType}
                 </span>
-              ))}
+              </div>
+            </div>
+
+            {/* Author / From */}
+            <div className="space-y-1">
+              <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+                Author
+              </span>
+              <div className="flex items-center gap-2">
+                <div className="h-5 w-5 rounded-full bg-primary/10 text-primary flex items-center justify-center font-semibold text-[10px] shrink-0">
+                  {authorInitials}
+                </div>
+                <span className="text-xs font-medium text-foreground">{announcement.author_name}</span>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Official Message Section */}
-      <div className="rounded-xl border border-border bg-card p-5 shadow-xs space-y-2.5">
-        <div className="flex items-center justify-between border-b border-border/60 pb-2.5 text-xs text-muted-foreground">
-          <div className="flex items-center gap-1.5 text-foreground font-semibold">
-            <FileText className="w-4 h-4 text-primary" />
-            <span>Official Notice Message</span>
-          </div>
-          <span className="text-[11px] text-muted-foreground">Internal Memorandum</span>
-        </div>
-        <div className="text-sm leading-relaxed whitespace-pre-wrap text-foreground font-normal pt-1">
+      {/* Message Content Section */}
+      <div className="rounded-xl border border-border bg-card p-5 shadow-xs space-y-2">
+        <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+          Message
+        </span>
+        <div className="text-sm leading-relaxed whitespace-pre-wrap text-foreground font-normal pt-0.5">
           {announcement.message_content}
         </div>
       </div>
