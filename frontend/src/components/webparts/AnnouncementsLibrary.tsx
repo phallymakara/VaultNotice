@@ -76,13 +76,14 @@ function getShortRecipient(target: string): string {
   return (fullName || target).slice(0, 3).toUpperCase()
 }
 
-function formatShortRecipients(targets?: string[]): string {
-  if (!targets || targets.length === 0) return "ALL"
-  const shortCodes = targets.map(getShortRecipient)
-  if (shortCodes.length <= 3) {
-    return shortCodes.join(", ")
+function getRecipientItems(targets?: string[]) {
+  if (!targets || targets.length === 0) {
+    return [{ code: "ALL", name: "All Staff" }]
   }
-  return `${shortCodes.slice(0, 2).join(", ")} +${shortCodes.length - 2}`
+  return targets.map((t) => ({
+    code: getShortRecipient(t),
+    name: FALLBACK_NAME_MAP[t] || t,
+  }))
 }
 
 function getFullRecipientNames(targets?: string[]): string {
@@ -227,10 +228,26 @@ export function AnnouncementsLibrary() {
                     {formatDate(item.created_at)}
                   </TableCell>
 
-                  <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
-                    <span title={getFullRecipientNames(item.target_summary)}>
-                      {formatShortRecipients(item.target_summary)}
-                    </span>
+                  <TableCell className="whitespace-nowrap">
+                    <div className="flex items-center gap-1.5">
+                      {getRecipientItems(item.target_summary).slice(0, 3).map((target, idx) => (
+                        <span
+                          key={idx}
+                          title={target.name}
+                          className="inline-flex items-center justify-center min-w-6 h-6 px-1.5 rounded-full bg-muted text-foreground text-[10px] font-medium leading-none"
+                        >
+                          {target.code}
+                        </span>
+                      ))}
+                      {(item.target_summary?.length || 0) > 3 && (
+                        <span
+                          title={getFullRecipientNames(item.target_summary)}
+                          className="inline-flex items-center justify-center min-w-6 h-6 px-1.5 rounded-full bg-muted text-muted-foreground text-[10px] font-medium leading-none"
+                        >
+                          +{item.target_summary!.length - 3}
+                        </span>
+                      )}
+                    </div>
                   </TableCell>
 
                   <TableCell className="text-center">
