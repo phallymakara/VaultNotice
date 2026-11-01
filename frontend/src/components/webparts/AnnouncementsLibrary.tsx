@@ -34,12 +34,60 @@ const FALLBACK_NAME_MAP: Record<string, string> = {
   "user-sreyneath": "Sreyneath Keo",
 }
 
-function formatRecipients(targets?: string[]): string {
-  if (!targets || targets.length === 0) return "Designated Recipients"
-  const resolved = targets.map((t) => FALLBACK_NAME_MAP[t] || t)
-  if (resolved.length === 1) return resolved[0]
-  if (resolved.length === 2) return `${resolved[0]}, ${resolved[1]}`
-  return `${resolved[0]} +${resolved.length - 1} more`
+const SHORT_CODE_MAP: Record<string, string> = {
+  // Groups
+  "All Branch Managers": "ALL",
+  "grp-branch-managers": "ALL",
+  "Finance Department": "FD",
+  "grp-finance": "FD",
+  "Finance": "FD",
+  "Management": "MGMT",
+  "grp-management": "MGMT",
+  "Operations Team": "OPS",
+  "grp-operations": "OPS",
+  "Operations": "OPS",
+  "Portal Admins": "ADM",
+  "grp-portal-admins": "ADM",
+  "Portal Admin": "PA",
+
+  // Users (profile initials)
+  "Sarah Lin": "SL",
+  "user-sarah": "SL",
+  "David Miller": "DM",
+  "user-david": "DM",
+  "Alex Vorn": "AV",
+  "user-alex": "AV",
+  "Emily Tan": "ET",
+  "user-emily": "ET",
+  "Sreyneath Keo": "SK",
+  "user-sreyneath": "SK",
+  "user-admin": "PA",
+}
+
+function getShortRecipient(target: string): string {
+  if (SHORT_CODE_MAP[target]) return SHORT_CODE_MAP[target]
+  const fullName = FALLBACK_NAME_MAP[target]
+  if (fullName && SHORT_CODE_MAP[fullName]) return SHORT_CODE_MAP[fullName]
+
+  const words = (fullName || target).trim().split(/\s+/)
+  if (words.length >= 2) {
+    return (words[0][0] + words[1][0]).toUpperCase()
+  }
+  return (fullName || target).slice(0, 3).toUpperCase()
+}
+
+function formatShortRecipients(targets?: string[]): string {
+  if (!targets || targets.length === 0) return "ALL"
+  const shortCodes = targets.map(getShortRecipient)
+  if (shortCodes.length <= 3) {
+    return shortCodes.join(", ")
+  }
+  return `${shortCodes.slice(0, 2).join(", ")} +${shortCodes.length - 2}`
+}
+
+function getFullRecipientNames(targets?: string[]): string {
+  if (!targets || targets.length === 0) return "All Staff"
+  return targets.map((t) => FALLBACK_NAME_MAP[t] || t).join(", ")
 }
 
 export function AnnouncementsLibrary() {
@@ -180,8 +228,8 @@ export function AnnouncementsLibrary() {
                   </TableCell>
 
                   <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
-                    <span title={item.target_summary?.map((t) => FALLBACK_NAME_MAP[t] || t).join(", ") || ""}>
-                      {formatRecipients(item.target_summary)}
+                    <span title={getFullRecipientNames(item.target_summary)}>
+                      {formatShortRecipients(item.target_summary)}
                     </span>
                   </TableCell>
 
