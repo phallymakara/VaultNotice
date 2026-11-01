@@ -69,9 +69,9 @@ export function NotificationModal({
         className="w-[360px] sm:w-[380px] p-0 shadow-xl border border-border bg-popover flex flex-col max-h-[85vh]"
       >
         <div className="flex items-center justify-between border-b border-border px-4 py-3 shrink-0">
-          <h3 className="font-semibold text-sm text-foreground">Notifications</h3>
+          <h3 className="text-sm font-normal text-foreground">Notifications</h3>
           {unreadCount > 0 && (
-            <span className="text-[11px] text-muted-foreground font-medium">
+            <span className="text-[11px] text-muted-foreground">
               {unreadCount} {unreadCount === 1 ? "alert" : "alerts"}
             </span>
           )}
@@ -94,7 +94,7 @@ export function NotificationModal({
                 className="p-3.5 space-y-1 cursor-pointer transition-colors hover:bg-muted/40"
               >
                 <div className="flex items-start justify-between gap-3">
-                  <div className="text-sm font-semibold text-foreground leading-snug">
+                  <div className="text-sm font-normal text-foreground leading-snug">
                     {item.announcement_title}
                   </div>
                   <span className="text-xs text-muted-foreground shrink-0 mt-0.5">
