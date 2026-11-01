@@ -48,12 +48,19 @@ def can_post_announcement(user: User) -> bool:
 
 def build_announcement_summary(
     announcement: Announcement,
+    users_map: dict[str, str] | None = None,
+    groups_map: dict[str, str] | None = None,
 ) -> AnnouncementSummaryResponse:
     # Compute target audience summary
     targets: list[str] = []
     for perm in announcement.permissions:
         if perm.access_level != "FULL_CONTROL":
-            targets.append(perm.recipient_id)
+            name = perm.recipient_id
+            if perm.recipient_type == "USER" and users_map and perm.recipient_id in users_map:
+                name = users_map[perm.recipient_id]
+            elif perm.recipient_type == "GROUP" and groups_map and perm.recipient_id in groups_map:
+                name = groups_map[perm.recipient_id]
+            targets.append(name)
 
     # Count attachments excluding generated PDF
     attachment_count = sum(1 for f in announcement.files if not f.is_generated_pdf)
@@ -313,7 +320,9 @@ def list_security_trimmed_announcements(
         limit=limit,
         offset=offset,
     )
-    return [build_announcement_summary(a) for a in announcements]
+    users_map = {u.id: u.name for u in get_all_users(db)}
+    groups_map = {g.id: g.name for g in get_all_groups(db)}
+    return [build_announcement_summary(a, users_map, groups_map) for a in announcements]
 
 
 def get_announcement_details_authorized(

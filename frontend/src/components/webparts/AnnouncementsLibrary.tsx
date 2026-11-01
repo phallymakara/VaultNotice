@@ -9,7 +9,6 @@ import { useAnnouncements } from "@/hooks/useAnnouncements"
 import { usePersona } from "@/context/PersonaContext"
 import { AnnouncementFolderModal } from "./AnnouncementFolderModal"
 import { PostAnnouncementDialog } from "./PostAnnouncementDialog"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -20,6 +19,28 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+
+const FALLBACK_NAME_MAP: Record<string, string> = {
+  "grp-branch-managers": "All Branch Managers",
+  "grp-finance": "Finance Department",
+  "grp-management": "Management",
+  "grp-operations": "Operations Team",
+  "grp-portal-admins": "Portal Admins",
+  "user-alex": "Alex Vorn",
+  "user-david": "David Miller",
+  "user-emily": "Emily Tan",
+  "user-admin": "Portal Admin",
+  "user-sarah": "Sarah Lin",
+  "user-sreyneath": "Sreyneath Keo",
+}
+
+function formatRecipients(targets?: string[]): string {
+  if (!targets || targets.length === 0) return "Designated Recipients"
+  const resolved = targets.map((t) => FALLBACK_NAME_MAP[t] || t)
+  if (resolved.length === 1) return resolved[0]
+  if (resolved.length === 2) return `${resolved[0]}, ${resolved[1]}`
+  return `${resolved[0]} +${resolved.length - 1} more`
+}
 
 export function AnnouncementsLibrary() {
   const [selectedAnnouncementId, setSelectedAnnouncementId] = useState<number | null>(null)
@@ -158,12 +179,10 @@ export function AnnouncementsLibrary() {
                     {formatDate(item.created_at)}
                   </TableCell>
 
-                  <TableCell>
-                    <Badge variant="outline" className="text-[11px] font-normal">
-                      {item.target_summary?.length
-                        ? `${item.target_summary.length} recipient${item.target_summary.length > 1 ? "s" : ""}`
-                        : "Targeted"}
-                    </Badge>
+                  <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
+                    <span title={item.target_summary?.map((t) => FALLBACK_NAME_MAP[t] || t).join(", ") || ""}>
+                      {formatRecipients(item.target_summary)}
+                    </span>
                   </TableCell>
 
                   <TableCell className="text-center">
