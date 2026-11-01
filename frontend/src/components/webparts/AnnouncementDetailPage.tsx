@@ -4,14 +4,11 @@ import {
   FileText,
   Download,
   Calendar,
-  Clock,
-  User,
-  Tag,
   FileSpreadsheet,
   FileImage,
   Loader2,
   AlertCircle,
-  Eye,
+  File,
 } from "lucide-react"
 import { useAnnouncementDetails } from "@/hooks/useAnnouncements"
 import { apiClient } from "@/services/apiClient"
@@ -167,7 +164,7 @@ export function AnnouncementDetailPage({
     if (lower.endsWith(".png") || lower.endsWith(".jpg") || lower.endsWith(".jpeg") || lower.endsWith(".webp")) {
       return <FileImage className="w-4 h-4 text-purple-600 shrink-0" />
     }
-    return <FileText className="w-4 h-4 text-muted-foreground shrink-0" />
+    return <File className="w-4 h-4 text-muted-foreground shrink-0" />
   }
 
   const handleDownloadFile = async (file: FileItem) => {
@@ -232,6 +229,13 @@ export function AnnouncementDetailPage({
   })
   const noticeType = announcement.template_name || "Official Directive"
 
+  const authorInitials = (announcement.author_name || "M")
+    .split(" ")
+    .map((w) => w[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase()
+
   const isPdf = selectedFile?.is_generated_pdf || selectedFile?.file_name.toLowerCase().endsWith(".pdf")
   const isImage =
     selectedFile?.file_name.toLowerCase().endsWith(".png") ||
@@ -240,53 +244,58 @@ export function AnnouncementDetailPage({
     selectedFile?.file_name.toLowerCase().endsWith(".webp")
 
   return (
-    <div className="space-y-6 pb-12 animate-fade-in">
-      {/* Top Navigation Bar / Breadcrumb */}
+    <div className="space-y-6 pb-12 animate-fade-in max-w-5xl mx-auto">
+      {/* Top Back Navigation */}
       <div>
         <Button
           variant="ghost"
           size="sm"
           onClick={onBack}
-          className="text-xs h-8 -ml-2 gap-1.5 hover:bg-muted cursor-pointer text-muted-foreground hover:text-foreground"
+          className="text-xs h-8 -ml-2 gap-1.5 hover:bg-muted cursor-pointer text-muted-foreground hover:text-foreground font-medium"
         >
           <ArrowLeft className="w-4 h-4" /> Back to Announcements
         </Button>
       </div>
 
-      {/* Main Header */}
-      <div className="space-y-3">
-        <h1 className="text-2xl font-bold tracking-tight text-foreground">
+      {/* Modern Executive Header */}
+      <div className="space-y-3.5">
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
           {announcement.title}
         </h1>
 
-        {/* Metadata Bar */}
-        <div className="flex flex-wrap items-center gap-y-2 gap-x-6 text-xs text-muted-foreground pt-1">
-          <div className="flex items-center gap-1.5">
-            <Tag className="w-3.5 h-3.5 text-muted-foreground" />
-            <span>Type:</span>
-            <span className="font-medium text-foreground">{noticeType}</span>
+        {/* Polished Metadata Bar */}
+        <div className="flex flex-wrap items-center gap-y-2.5 gap-x-4 text-xs text-muted-foreground">
+          {/* Directive Type Pill */}
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary border border-primary/15">
+            <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+            {noticeType}
+          </span>
+
+          <span className="text-border hidden sm:inline">•</span>
+
+          {/* Author with Avatar */}
+          <div className="flex items-center gap-1.5 text-foreground">
+            <div className="h-5 w-5 rounded-full bg-primary/10 text-primary flex items-center justify-center font-semibold text-[10px] shrink-0">
+              {authorInitials}
+            </div>
+            <span className="font-medium">{announcement.author_name}</span>
           </div>
 
+          <span className="text-border hidden sm:inline">•</span>
+
+          {/* Date & Time */}
           <div className="flex items-center gap-1.5">
-            <User className="w-3.5 h-3.5 text-muted-foreground" />
-            <span>Author:</span>
-            <span className="font-medium text-foreground">{announcement.author_name}</span>
+            <Calendar className="w-3.5 h-3.5" />
+            <span>{formattedDate}</span>
+            <span className="text-muted-foreground/60">at</span>
+            <span>{formattedTime}</span>
           </div>
 
-          <div className="flex items-center gap-1.5">
-            <Calendar className="w-3.5 h-3.5 text-muted-foreground" />
-            <span>Date:</span>
-            <span className="font-medium text-foreground">{formattedDate}</span>
-          </div>
+          <span className="text-border hidden sm:inline">•</span>
 
+          {/* Target Audience / Recipients */}
           <div className="flex items-center gap-1.5">
-            <Clock className="w-3.5 h-3.5 text-muted-foreground" />
-            <span>Time:</span>
-            <span className="font-medium text-foreground">{formattedTime}</span>
-          </div>
-
-          <div className="flex items-center gap-1.5">
-            <span>Recipients:</span>
+            <span className="text-muted-foreground">Target:</span>
             <div className="flex items-center gap-1">
               {announcement.target_summary.map((t, idx) => (
                 <span
@@ -302,152 +311,135 @@ export function AnnouncementDetailPage({
         </div>
       </div>
 
-      {/* Message Content Section */}
-      <div className="space-y-2">
-        <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-          Announcement Message
-        </h2>
-        <div className="p-4 rounded-lg border border-border bg-card text-sm leading-relaxed whitespace-pre-wrap text-foreground">
+      {/* Official Message Section */}
+      <div className="rounded-xl border border-border bg-card p-5 shadow-xs space-y-2.5">
+        <div className="flex items-center justify-between border-b border-border/60 pb-2.5 text-xs text-muted-foreground">
+          <div className="flex items-center gap-1.5 text-foreground font-semibold">
+            <FileText className="w-4 h-4 text-primary" />
+            <span>Official Notice Message</span>
+          </div>
+          <span className="text-[11px] text-muted-foreground">Internal Memorandum</span>
+        </div>
+        <div className="text-sm leading-relaxed whitespace-pre-wrap text-foreground font-normal pt-1">
           {announcement.message_content}
         </div>
       </div>
 
-      {/* Attachments & Preview Section */}
-      <div className="space-y-3 pt-2">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            Attached Documents & Files ({announcement.files.length})
-          </h2>
-          <span className="text-[11px] text-muted-foreground">
-            Select a file below to preview
-          </span>
-        </div>
-
-        {/* Files Selection Strip */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
-          {announcement.files.map((file) => {
-            const isSelected = selectedFile?.id === file.id
-            return (
-              <div
-                key={file.id}
-                onClick={() => setSelectedFile(file)}
-                className={`p-3 rounded-lg border cursor-pointer transition-all flex items-center justify-between gap-2.5 ${
-                  isSelected
-                    ? "border-primary bg-primary/5 shadow-xs"
-                    : "border-border bg-card hover:bg-muted/40"
-                }`}
-              >
-                <div className="flex items-center gap-2.5 min-w-0">
-                  {getFileIcon(file.file_name, file.is_generated_pdf)}
-                  <div className="min-w-0">
-                    <p className="text-xs font-medium truncate text-foreground">
-                      {file.file_name}
-                    </p>
-                    <p className="text-[10px] text-muted-foreground">
-                      {formatFileSize(file.file_size)} • {file.is_generated_pdf ? "Official PDF" : "Attachment"}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-1 shrink-0">
-                  {isSelected && (
-                    <span className="text-[10px] font-medium text-primary flex items-center gap-0.5">
-                      <Eye className="w-3 h-3" /> Preview
+      {/* Unified Document Workspace & Preview */}
+      {announcement.files.length > 0 && (
+        <div className="rounded-xl border border-border bg-card overflow-hidden shadow-xs">
+          {/* File Tabs & Actions Bar */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-border bg-muted/40 px-3 py-2 gap-2">
+            {/* Scrollable File Selector Tabs */}
+            <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none py-0.5">
+              {announcement.files.map((file) => {
+                const isSelected = selectedFile?.id === file.id
+                return (
+                  <button
+                    key={file.id}
+                    onClick={() => setSelectedFile(file)}
+                    className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-all shrink-0 cursor-pointer ${
+                      isSelected
+                        ? "bg-background text-foreground shadow-xs border border-border"
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted/60 border border-transparent"
+                    }`}
+                  >
+                    {getFileIcon(file.file_name, file.is_generated_pdf)}
+                    <span className="truncate max-w-[150px] sm:max-w-[200px]">{file.file_name}</span>
+                    <span className="text-[10px] text-muted-foreground font-normal">
+                      {formatFileSize(file.file_size)}
                     </span>
-                  )}
-                </div>
-              </div>
-            )
-          })}
-        </div>
-
-        {/* Interactive File Preview Pane */}
-        {selectedFile && (
-          <div className="rounded-lg border border-border bg-card overflow-hidden mt-4">
-            <div className="p-3 border-b bg-muted/30 flex items-center justify-between text-xs">
-              <div className="flex items-center gap-2">
-                {getFileIcon(selectedFile.file_name, selectedFile.is_generated_pdf)}
-                <span className="font-semibold text-foreground truncate max-w-sm">
-                  {selectedFile.file_name}
-                </span>
-                <span className="text-muted-foreground">({formatFileSize(selectedFile.file_size)})</span>
-              </div>
-
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-7 text-xs gap-1.5 cursor-pointer"
-                onClick={() => handleDownloadFile(selectedFile)}
-                disabled={downloadingFileId === selectedFile.id}
-              >
-                {downloadingFileId === selectedFile.id ? (
-                  <Loader2 className="w-3 h-3 animate-spin" />
-                ) : (
-                  <Download className="w-3 h-3" />
-                )}
-                Download
-              </Button>
+                    {file.is_generated_pdf && (
+                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-primary/10 text-primary font-medium">
+                        Official
+                      </span>
+                    )}
+                  </button>
+                )
+              })}
             </div>
 
-            <div className="min-h-[450px] flex items-center justify-center p-2 bg-background">
-              {isLoadingPreview ? (
-                <div className="py-20 flex flex-col items-center justify-center space-y-2 text-muted-foreground">
-                  <Loader2 className="w-6 h-6 animate-spin text-primary" />
-                  <p className="text-xs">Loading file preview...</p>
-                </div>
-              ) : previewError ? (
-                <div className="py-16 text-center space-y-2">
-                  <AlertCircle className="w-7 h-7 text-destructive mx-auto" />
-                  <p className="text-xs text-muted-foreground">{previewError}</p>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="text-xs"
-                    onClick={() => handleDownloadFile(selectedFile)}
-                  >
-                    <Download className="w-3.5 h-3.5 mr-1" /> Download File Instead
-                  </Button>
-                </div>
-              ) : previewBlobUrl && isPdf ? (
+            {/* Download Action Button */}
+            {selectedFile && (
+              <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleDownloadFile(selectedFile)}
+                  disabled={downloadingFileId === selectedFile.id}
+                  className="h-8 text-xs gap-1.5 cursor-pointer shadow-xs font-medium"
+                >
+                  {downloadingFileId === selectedFile.id ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <Download className="w-3.5 h-3.5" />
+                  )}
+                  Download {selectedFile.file_name}
+                </Button>
+              </div>
+            )}
+          </div>
+
+          {/* Active File Preview Pane */}
+          <div className="p-3 bg-background">
+            {isLoadingPreview ? (
+              <div className="py-24 flex flex-col items-center justify-center space-y-2 text-muted-foreground">
+                <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                <p className="text-xs">Preparing document preview...</p>
+              </div>
+            ) : previewError ? (
+              <div className="py-20 text-center space-y-3">
+                <AlertCircle className="w-7 h-7 text-destructive mx-auto" />
+                <p className="text-xs text-muted-foreground">{previewError}</p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-xs gap-1.5"
+                  onClick={() => selectedFile && handleDownloadFile(selectedFile)}
+                >
+                  <Download className="w-3.5 h-3.5" /> Download File Directly
+                </Button>
+              </div>
+            ) : previewBlobUrl && isPdf ? (
+              <div className="w-full rounded-lg overflow-hidden border border-border shadow-xs">
                 <iframe
                   src={`${previewBlobUrl}#toolbar=0`}
-                  title={selectedFile.file_name}
-                  className="w-full h-[650px] rounded border-0"
+                  title={selectedFile?.file_name}
+                  className="w-full h-[720px] rounded-lg border-0 bg-white"
                 />
-              ) : previewBlobUrl && isImage ? (
-                <div className="p-4 flex items-center justify-center max-h-[600px] overflow-hidden">
-                  <img
-                    src={previewBlobUrl}
-                    alt={selectedFile.file_name}
-                    className="max-h-[550px] max-w-full rounded shadow-xs object-contain"
-                  />
+              </div>
+            ) : previewBlobUrl && isImage ? (
+              <div className="p-6 flex items-center justify-center min-h-[400px] max-h-[650px] bg-muted/20 rounded-lg border border-border">
+                <img
+                  src={previewBlobUrl}
+                  alt={selectedFile?.file_name}
+                  className="max-h-[600px] max-w-full rounded shadow-sm object-contain"
+                />
+              </div>
+            ) : (
+              <div className="py-20 text-center space-y-3">
+                <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center mx-auto text-muted-foreground">
+                  {selectedFile && getFileIcon(selectedFile.file_name, false)}
                 </div>
-              ) : (
-                <div className="py-16 text-center space-y-3">
-                  <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center mx-auto text-muted-foreground">
-                    {getFileIcon(selectedFile.file_name, false)}
-                  </div>
-                  <div>
-                    <p className="text-xs font-medium text-foreground">{selectedFile.file_name}</p>
-                    <p className="text-[11px] text-muted-foreground">
-                      This file type cannot be previewed directly in the browser.
-                    </p>
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="text-xs gap-1.5"
-                    onClick={() => handleDownloadFile(selectedFile)}
-                  >
-                    <Download className="w-3.5 h-3.5" /> Download to View
-                  </Button>
+                <div>
+                  <p className="text-sm font-medium text-foreground">{selectedFile?.file_name}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Preview is not available directly in browser for this file type ({selectedFile ? formatFileSize(selectedFile.file_size) : ""}).
+                  </p>
                 </div>
-              )}
-            </div>
+                <Button
+                  variant="default"
+                  size="sm"
+                  className="text-xs gap-1.5 font-medium"
+                  onClick={() => selectedFile && handleDownloadFile(selectedFile)}
+                >
+                  <Download className="w-3.5 h-3.5" /> Download {selectedFile?.file_name}
+                </Button>
+              </div>
+            )}
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   )
 }
-
