@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 
 from app.core.exceptions import APIError, ForbiddenError, NotFoundError
 from app.core.logging import logger
+from app.models.acknowledgement import AnnouncementAcknowledgement
 from app.models.announcement import Announcement
 from app.models.file import AnnouncementFile
 from app.models.permission import AnnouncementPermission
@@ -23,6 +24,7 @@ from app.repositories.user_repository import (
     get_user_group_ids,
 )
 from app.schemas.announcement import (
+    AcknowledgementResponse,
     AnnouncementDetailResponse,
     AnnouncementPermissionResponse,
     AnnouncementSummaryResponse,
@@ -50,6 +52,7 @@ def build_announcement_summary(
     announcement: Announcement,
     users_map: dict[str, str] | None = None,
     groups_map: dict[str, str] | None = None,
+    current_user_id: str | None = None,
 ) -> AnnouncementSummaryResponse:
     # Compute target audience summary
     targets: list[str] = []
@@ -65,6 +68,13 @@ def build_announcement_summary(
     # Count attachments excluding generated PDF
     attachment_count = sum(1 for f in announcement.files if not f.is_generated_pdf)
 
+    is_acknowledged = (
+        any(ack.user_id == current_user_id for ack in announcement.acknowledgements)
+        if current_user_id
+        else False
+    )
+    ack_count = len(announcement.acknowledgements)
+
     return AnnouncementSummaryResponse(
         id=announcement.id,
         title=announcement.title,
@@ -73,6 +83,10 @@ def build_announcement_summary(
         author_name=announcement.author.name if announcement.author else "Management",
         created_at=announcement.created_at,
         status=announcement.status,
+        confidentiality_level=announcement.confidentiality_level or "Internal",
+        expires_at=announcement.expires_at,
+        acknowledged=is_acknowledged,
+        acknowledgement_count=ack_count,
         target_summary=targets,
         attachment_count=attachment_count,
     )
@@ -81,6 +95,7 @@ def build_announcement_summary(
 def build_announcement_detail(
     announcement: Announcement,
     db: Session,
+    current_user: User | None = None,
 ) -> AnnouncementDetailResponse:
     users_map = {u.id: u.name for u in get_all_users(db)}
     groups_map = {g.id: g.name for g in get_all_groups(db)}
@@ -119,6 +134,18 @@ def build_announcement_detail(
         for f in announcement.files
     ]
 
+    user_ack = next(
+        (
+            ack
+            for ack in announcement.acknowledgements
+            if current_user and ack.user_id == current_user.id
+        ),
+        None,
+    )
+    is_acknowledged = user_ack is not None
+    acknowledged_at = user_ack.acknowledged_at if user_ack else None
+    ack_count = len(announcement.acknowledgements)
+
     return AnnouncementDetailResponse(
         id=announcement.id,
         title=announcement.title,
@@ -127,6 +154,11 @@ def build_announcement_detail(
         author_id=announcement.author_id,
         author_name=announcement.author.name if announcement.author else "Management",
         template_name=announcement.template.name if announcement.template else None,
+        confidentiality_level=announcement.confidentiality_level or "Internal",
+        expires_at=announcement.expires_at,
+        acknowledged=is_acknowledged,
+        acknowledged_at=acknowledged_at,
+        acknowledgement_count=ack_count,
         created_at=announcement.created_at,
         status=announcement.status,
         target_summary=targets,
@@ -142,6 +174,8 @@ async def process_and_create_announcement(
     message_content: str,
     recipients_json: str,
     template_id: int | None = None,
+    confidentiality_level: str = "Internal",
+    expires_at: datetime | None = None,
     files: list[UploadFile] | None = None,
 ) -> AnnouncementDetailResponse:
     """Automated backend processing engine replicating Power Automate workflow:
@@ -276,6 +310,8 @@ async def process_and_create_announcement(
             message_content=message_content,
             author_id=current_user.id,
             template_id=template_id,
+            confidentiality_level=confidentiality_level or "Internal",
+            expires_at=expires_at,
             status="SUCCESS",
             created_at=now,
         )
@@ -291,7 +327,7 @@ async def process_and_create_announcement(
         logger.info(
             f"Successfully posted announcement '{title}' (ID: {created.id}) inside folder '{folder_name}'"
         )
-        return build_announcement_detail(created, db)
+        return build_announcement_detail(created, db, current_user=current_user)
 
     except Exception as exc:
         logger.exception(f"Failed to process announcement '{title}': {exc!s}")
@@ -322,7 +358,10 @@ def list_security_trimmed_announcements(
     )
     users_map = {u.id: u.name for u in get_all_users(db)}
     groups_map = {g.id: g.name for g in get_all_groups(db)}
-    return [build_announcement_summary(a, users_map, groups_map) for a in announcements]
+    return [
+        build_announcement_summary(a, users_map, groups_map, current_user_id=current_user.id)
+        for a in announcements
+    ]
 
 
 def get_announcement_details_authorized(
@@ -351,4 +390,61 @@ def get_announcement_details_authorized(
     if not announcement:
         raise NotFoundError(f"Announcement {announcement_id} not found.")
 
-    return build_announcement_detail(announcement, db)
+    return build_announcement_detail(announcement, db, current_user=current_user)
+
+
+def acknowledge_announcement(
+    db: Session,
+    announcement_id: int,
+    current_user: User,
+) -> AcknowledgementResponse:
+    """Records read acknowledgement for the active user."""
+    user_groups = get_user_group_ids(db, current_user.id)
+    is_admin = current_user.role == "Portal Admin" or "grp-portal-admins" in user_groups
+
+    has_access, _ = check_user_access(
+        db=db,
+        announcement_id=announcement_id,
+        user_id=current_user.id,
+        group_ids=user_groups,
+        is_admin=is_admin,
+    )
+
+    if not has_access:
+        raise ForbiddenError(
+            "You do not have permission to access or acknowledge this announcement."
+        )
+
+    announcement = get_announcement_by_id(db, announcement_id)
+    if not announcement:
+        raise NotFoundError(f"Announcement {announcement_id} not found.")
+
+    existing_ack = (
+        db.query(AnnouncementAcknowledgement)
+        .filter_by(announcement_id=announcement_id, user_id=current_user.id)
+        .first()
+    )
+
+    if not existing_ack:
+        new_ack = AnnouncementAcknowledgement(
+            announcement_id=announcement_id,
+            user_id=current_user.id,
+            acknowledged_at=datetime.now(UTC),
+        )
+        db.add(new_ack)
+        db.commit()
+        db.refresh(new_ack)
+        existing_ack = new_ack
+
+    ack_count = (
+        db.query(AnnouncementAcknowledgement)
+        .filter_by(announcement_id=announcement_id)
+        .count()
+    )
+
+    return AcknowledgementResponse(
+        announcement_id=announcement_id,
+        acknowledged=True,
+        acknowledged_at=existing_ack.acknowledged_at,
+        acknowledgement_count=ack_count,
+    )

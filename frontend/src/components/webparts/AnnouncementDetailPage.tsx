@@ -9,7 +9,11 @@ import {
   Loader2,
   AlertCircle,
   File,
+  Shield,
+  ShieldAlert,
   ShieldCheck,
+  Clock,
+  Check,
   FolderLock,
   CheckCircle2,
 } from "lucide-react"
@@ -64,6 +68,36 @@ const SHORT_CODE_MAP: Record<string, string> = {
   "user-admin": "PA",
 }
 
+function getConfidentialityBadge(level?: string) {
+  const l = (level || "Internal").toLowerCase()
+  if (l.includes("confidential")) {
+    return (
+      <span className="inline-flex items-center gap-1.5 font-medium text-amber-700 bg-amber-50 px-2.5 py-1 rounded-full border border-amber-200">
+        <Shield className="w-3.5 h-3.5" /> Confidential
+      </span>
+    )
+  }
+  if (l.includes("restricted")) {
+    return (
+      <span className="inline-flex items-center gap-1.5 font-medium text-rose-700 bg-rose-50 px-2.5 py-1 rounded-full border border-rose-200">
+        <ShieldAlert className="w-3.5 h-3.5" /> Restricted
+      </span>
+    )
+  }
+  if (l.includes("official")) {
+    return (
+      <span className="inline-flex items-center gap-1.5 font-medium text-indigo-700 bg-indigo-50 px-2.5 py-1 rounded-full border border-indigo-200">
+        <ShieldCheck className="w-3.5 h-3.5" /> Official Directive
+      </span>
+    )
+  }
+  return (
+    <span className="inline-flex items-center gap-1.5 font-medium text-slate-700 bg-slate-100 px-2.5 py-1 rounded-full border border-slate-200">
+      <Shield className="w-3.5 h-3.5" /> Internal Use
+    </span>
+  )
+}
+
 function getShortRecipient(target: string): string {
   if (SHORT_CODE_MAP[target]) return SHORT_CODE_MAP[target]
   const fullName = FALLBACK_NAME_MAP[target]
@@ -87,6 +121,33 @@ export function AnnouncementDetailPage({
   const [isLoadingPreview, setIsLoadingPreview] = useState<boolean>(false)
   const [previewError, setPreviewError] = useState<string | null>(null)
   const [downloadingFileId, setDownloadingFileId] = useState<number | null>(null)
+  const [acknowledged, setAcknowledged] = useState<boolean>(false)
+  const [acknowledgedAt, setAcknowledgedAt] = useState<string | null>(null)
+  const [ackCount, setAckCount] = useState<number>(0)
+  const [isAcknowledging, setIsAcknowledging] = useState<boolean>(false)
+
+  // Initialize and sync acknowledgment status
+  useEffect(() => {
+    if (announcement) {
+      setAcknowledged(Boolean(announcement.acknowledged))
+      setAcknowledgedAt(announcement.acknowledged_at || null)
+      setAckCount(announcement.acknowledgement_count || 0)
+    }
+  }, [announcement])
+
+  const handleAcknowledge = async () => {
+    try {
+      setIsAcknowledging(true)
+      const res = await apiClient.acknowledgeAnnouncement(announcementId)
+      setAcknowledged(res.acknowledged)
+      setAcknowledgedAt(res.acknowledged_at)
+      setAckCount(res.acknowledgement_count)
+    } catch (err) {
+      console.error("Failed to acknowledge announcement:", err)
+    } finally {
+      setIsAcknowledging(false)
+    }
+  }
 
   // Default selected file to generated PDF or first file
   useEffect(() => {
@@ -270,11 +331,14 @@ export function AnnouncementDetailPage({
           <ArrowLeft className="w-4 h-4" /> Back to Announcements
         </Button>
 
-        <div className="flex items-center gap-3 text-xs text-muted-foreground">
+        <div className="flex items-center gap-2.5 text-xs text-muted-foreground flex-wrap">
           <span className="inline-flex items-center gap-1.5 font-medium text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
             <CheckCircle2 className="w-3.5 h-3.5" /> Published
           </span>
-          <span className="font-mono text-muted-foreground">Notice #{announcement.id}</span>
+          {getConfidentialityBadge(announcement.confidentiality_level)}
+          <span className="font-mono text-muted-foreground bg-muted/60 px-2.5 py-1 rounded-full">
+            Notice #{announcement.id}
+          </span>
         </div>
       </div>
 
@@ -292,17 +356,17 @@ export function AnnouncementDetailPage({
 
         {/* Structured Metadata Card */}
         <div className="rounded-xl border border-border bg-card p-6 sm:p-7 shadow-xs">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6 sm:gap-7">
             {/* Created Date */}
             <div className="space-y-1.5">
               <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                 Created Date
               </span>
-              <div className="flex items-center gap-2 text-sm sm:text-base text-foreground">
+              <div className="flex items-center gap-1.5 text-sm sm:text-base text-foreground flex-wrap">
                 <Calendar className="w-4 h-4 text-muted-foreground shrink-0" />
                 <span className="font-medium">{formattedDate}</span>
-                <span className="text-muted-foreground text-xs sm:text-sm">at</span>
-                <span className="text-muted-foreground text-xs sm:text-sm">{formattedTime}</span>
+                <span className="text-muted-foreground text-xs">at</span>
+                <span className="text-muted-foreground text-xs">{formattedTime}</span>
               </div>
             </div>
 
@@ -331,7 +395,7 @@ export function AnnouncementDetailPage({
                 Type
               </span>
               <div>
-                <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs sm:text-sm font-medium bg-primary/10 text-primary border border-primary/20">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs sm:text-sm font-medium bg-primary/10 text-primary border border-primary/20">
                   <span className="h-2 w-2 rounded-full bg-primary" />
                   {noticeType}
                 </span>
@@ -343,16 +407,100 @@ export function AnnouncementDetailPage({
               <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                 Author
               </span>
-              <div className="flex items-center gap-2.5">
+              <div className="flex items-center gap-2">
                 <div className="h-7 w-7 rounded-full bg-primary/10 text-primary flex items-center justify-center font-semibold text-xs shrink-0">
                   {authorInitials}
                 </div>
                 <span className="text-sm sm:text-base font-medium text-foreground">{announcement.author_name}</span>
               </div>
             </div>
+
+            {/* Validity / Expiry */}
+            <div className="space-y-1.5">
+              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                Validity
+              </span>
+              <div className="flex items-center gap-2 text-sm sm:text-base text-foreground">
+                <Clock className="w-4 h-4 text-muted-foreground shrink-0" />
+                <span className="font-medium text-xs sm:text-sm">
+                  {announcement.expires_at
+                    ? `Expires ${new Date(announcement.expires_at).toLocaleDateString([], {
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
+                      })}`
+                    : "Permanent"}
+                </span>
+              </div>
+            </div>
+
+            {/* Receipts / Acknowledgement */}
+            <div className="space-y-1.5">
+              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                Receipts
+              </span>
+              <div className="flex items-center gap-2 text-sm sm:text-base text-foreground">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span className="font-medium text-xs sm:text-sm">
+                  {ackCount} Acknowledged
+                </span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
+
+      {/* Read Acknowledgement & Compliance Banner */}
+      {acknowledged ? (
+        <div className="rounded-xl border border-emerald-200 bg-emerald-50/70 p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-2xs">
+          <div className="flex items-center gap-3">
+            <div className="h-9 w-9 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+              <CheckCircle2 className="w-5 h-5" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-emerald-950">You formally acknowledged this notice</p>
+              <p className="text-xs text-emerald-700">
+                {acknowledgedAt
+                  ? `Recorded on ${new Date(acknowledgedAt).toLocaleString([], {
+                      dateStyle: "medium",
+                      timeStyle: "short",
+                    })} • `
+                  : ""}
+                {ackCount} {ackCount === 1 ? "recipient has" : "recipients have"} confirmed receipt
+              </p>
+            </div>
+          </div>
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-300">
+            <Check className="w-3.5 h-3.5" /> Acknowledged
+          </span>
+        </div>
+      ) : (
+        <div className="rounded-xl border border-amber-200 bg-amber-50/70 p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-2xs">
+          <div className="flex items-center gap-3">
+            <div className="h-9 w-9 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
+              <AlertCircle className="w-5 h-5" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-amber-950">Mandatory Read Acknowledgement</p>
+              <p className="text-xs text-amber-700">
+                Please review the official memorandum and vault documentation, then confirm receipt for corporate compliance.
+              </p>
+            </div>
+          </div>
+          <Button
+            onClick={handleAcknowledge}
+            disabled={isAcknowledging}
+            className="shrink-0 h-9 px-4 gap-2 bg-amber-600 hover:bg-amber-700 text-white font-medium cursor-pointer shadow-xs"
+          >
+            {isAcknowledging ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <CheckCircle2 className="w-4 h-4" />
+            )}
+            Acknowledge Notice
+          </Button>
+        </div>
+      )}
 
       {/* Message Content Section */}
       <div className="rounded-xl border border-border bg-card p-6 sm:p-7 shadow-xs space-y-3">

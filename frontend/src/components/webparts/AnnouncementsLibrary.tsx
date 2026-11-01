@@ -222,7 +222,7 @@ export function AnnouncementsLibrary({ onSelectAnnouncement }: AnnouncementsLibr
                           {item.title}
                         </p>
                         <p className="text-[11px] text-muted-foreground truncate">
-                          Official Notice • {formatDate(item.created_at)}
+                          {item.confidentiality_level || "Official Notice"} • {formatDate(item.created_at)}
                         </p>
                       </div>
                     </div>

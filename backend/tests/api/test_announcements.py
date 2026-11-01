@@ -177,3 +177,33 @@ async def test_complete_announcement_workflow(async_client):
         log["announcement_id"] == announcement_id and log["status"] == "SUCCESS"
         for log in audit_logs
     )
+
+    # 6. Verify Read Acknowledgement:
+    # Initial status for David (not yet acknowledged)
+    detail_before = await async_client.get(
+        f"/api/v1/announcements/{announcement_id}",
+        headers={"X-User-Id": "user-david"},
+    )
+    assert detail_before.status_code == 200
+    assert detail_before.json()["acknowledged"] is False
+    assert detail_before.json()["acknowledgement_count"] == 0
+
+    # David acknowledges
+    ack_resp = await async_client.post(
+        f"/api/v1/announcements/{announcement_id}/acknowledge",
+        headers={"X-User-Id": "user-david"},
+    )
+    assert ack_resp.status_code == 200
+    ack_data = ack_resp.json()
+    assert ack_data["acknowledged"] is True
+    assert ack_data["acknowledgement_count"] == 1
+    assert ack_data["acknowledged_at"] is not None
+
+    # Detail page reflects acknowledgement
+    detail_after = await async_client.get(
+        f"/api/v1/announcements/{announcement_id}",
+        headers={"X-User-Id": "user-david"},
+    )
+    assert detail_after.status_code == 200
+    assert detail_after.json()["acknowledged"] is True
+    assert detail_after.json()["acknowledgement_count"] == 1

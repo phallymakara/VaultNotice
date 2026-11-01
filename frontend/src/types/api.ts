@@ -61,6 +61,10 @@ export interface AnnouncementSummary {
   author_name: string
   created_at: string
   status: string
+  confidentiality_level?: string
+  expires_at?: string | null
+  acknowledged?: boolean
+  acknowledgement_count?: number
   target_summary: string[]
   attachment_count: number
 }
@@ -93,9 +97,21 @@ export interface AnnouncementDetail {
   template_name?: string | null
   created_at: string
   status: string
+  confidentiality_level?: string
+  expires_at?: string | null
+  acknowledged?: boolean
+  acknowledged_at?: string | null
+  acknowledgement_count?: number
   target_summary: string[]
   permissions: AnnouncementPermissionItem[]
   files: FileItem[]
+}
+
+export interface AcknowledgementResponse {
+  announcement_id: number
+  acknowledged: boolean
+  acknowledged_at: string | null
+  acknowledgement_count: number
 }
 
 export interface NotificationItem {

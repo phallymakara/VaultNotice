@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, File, Form, Query, UploadFile, status
@@ -7,10 +8,12 @@ from app.api.dependencies import get_current_user
 from app.db.session import get_db
 from app.models.user import User
 from app.schemas.announcement import (
+    AcknowledgementResponse,
     AnnouncementDetailResponse,
     AnnouncementSummaryResponse,
 )
 from app.services.announcement_service import (
+    acknowledge_announcement,
     get_announcement_details_authorized,
     list_security_trimmed_announcements,
     process_and_create_announcement,
@@ -36,6 +39,12 @@ async def post_announcement(
     template_id: Annotated[
         int | None, Form(description="Optional template ID used")
     ] = None,
+    confidentiality_level: Annotated[
+        str, Form(description="Confidentiality classification")
+    ] = "Internal",
+    expires_at: Annotated[
+        datetime | None, Form(description="Optional expiration datetime")
+    ] = None,
     files: Annotated[
         list[UploadFile] | None, File(description="Document attachments")
     ] = None,
@@ -56,6 +65,8 @@ async def post_announcement(
         message_content=message_content,
         recipients_json=recipients,
         template_id=template_id,
+        confidentiality_level=confidentiality_level,
+        expires_at=expires_at,
         files=files,
     )
 
@@ -92,6 +103,24 @@ def get_announcement_details(
 ):
     """Inspects an announcement folder, listing the Announcement.pdf and all attached documents."""
     return get_announcement_details_authorized(
+        db=db,
+        announcement_id=announcement_id,
+        current_user=current_user,
+    )
+
+
+@router.post(
+    "/{announcement_id}/acknowledge",
+    response_model=AcknowledgementResponse,
+    summary="Acknowledge Announcement",
+)
+def acknowledge_notice(
+    announcement_id: int,
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
+):
+    """Records read acknowledgement for the current user."""
+    return acknowledge_announcement(
         db=db,
         announcement_id=announcement_id,
         current_user=current_user,

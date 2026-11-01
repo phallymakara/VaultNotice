@@ -1,3 +1,4 @@
+from app.models.acknowledgement import AnnouncementAcknowledgement
 from app.models.announcement import Announcement
 from app.models.file import AnnouncementFile
 from app.models.group import Group
@@ -9,6 +10,7 @@ from app.models.user_group_map import UserGroupMap
 
 __all__ = [
     "Announcement",
+    "AnnouncementAcknowledgement",
     "AnnouncementFile",
     "AnnouncementPermission",
     "AuditNotification",

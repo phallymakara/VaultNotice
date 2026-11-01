@@ -7,6 +7,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.db.base import Base
 
 if TYPE_CHECKING:
+    from app.models.acknowledgement import AnnouncementAcknowledgement
     from app.models.file import AnnouncementFile
     from app.models.notification import AuditNotification
     from app.models.permission import AnnouncementPermission
@@ -33,6 +34,12 @@ class Announcement(Base):
         nullable=True,
     )
     status: Mapped[str] = mapped_column(String(32), default="SUCCESS", nullable=False)
+    confidentiality_level: Mapped[str] = mapped_column(
+        String(64), default="Internal", nullable=False
+    )
+    expires_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
     error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
@@ -58,6 +65,11 @@ class Announcement(Base):
     )
     notifications: Mapped[list["AuditNotification"]] = relationship(
         "AuditNotification",
+        back_populates="announcement",
+        cascade="all, delete-orphan",
+    )
+    acknowledgements: Mapped[list["AnnouncementAcknowledgement"]] = relationship(
+        "AnnouncementAcknowledgement",
         back_populates="announcement",
         cascade="all, delete-orphan",
     )

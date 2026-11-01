@@ -30,6 +30,10 @@ class AnnouncementSummaryResponse(BaseModel):
     author_name: str
     created_at: datetime
     status: str
+    confidentiality_level: str = "Internal"
+    expires_at: datetime | None = None
+    acknowledged: bool = False
+    acknowledgement_count: int = 0
     target_summary: list[str] = []
     attachment_count: int = 0
 
@@ -46,8 +50,20 @@ class AnnouncementDetailResponse(BaseModel):
     template_name: str | None = None
     created_at: datetime
     status: str
+    confidentiality_level: str = "Internal"
+    expires_at: datetime | None = None
+    acknowledged: bool = False
+    acknowledged_at: datetime | None = None
+    acknowledgement_count: int = 0
     target_summary: list[str] = []
     permissions: list[AnnouncementPermissionResponse] = []
     files: list[FileResponse] = []
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class AcknowledgementResponse(BaseModel):
+    announcement_id: int
+    acknowledged: bool
+    acknowledged_at: datetime | None = None
+    acknowledgement_count: int

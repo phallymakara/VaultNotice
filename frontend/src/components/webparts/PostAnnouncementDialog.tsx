@@ -43,6 +43,8 @@ export function PostAnnouncementDialog({
   const [title, setTitle] = useState("")
   const [message, setMessage] = useState("")
   const [recipients, setRecipients] = useState<RecipientTarget[]>([])
+  const [confidentialityLevel, setConfidentialityLevel] = useState<string>("Internal")
+  const [expiresAt, setExpiresAt] = useState<string>("")
   const [attachments, setAttachments] = useState<File[]>([])
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
@@ -110,6 +112,10 @@ export function PostAnnouncementDialog({
     formData.append("title", title.trim())
     formData.append("message_content", message.trim())
     formData.append("recipients", JSON.stringify(recipients))
+    formData.append("confidentiality_level", confidentialityLevel)
+    if (expiresAt) {
+      formData.append("expires_at", new Date(expiresAt).toISOString())
+    }
     if (selectedTemplateId && selectedTemplateId !== "blank") {
       formData.append("template_id", selectedTemplateId)
     }
@@ -125,6 +131,8 @@ export function PostAnnouncementDialog({
       setMessage("")
       setSelectedTemplateId("blank")
       setRecipients([])
+      setConfidentialityLevel("Internal")
+      setExpiresAt("")
       setAttachments([])
       onOpenChange(false)
     } catch (err: unknown) {
@@ -197,6 +205,44 @@ export function PostAnnouncementDialog({
               onChange={setRecipients}
               disabled={postMutation.isPending}
             />
+          </div>
+
+          {/* Classification & Expiration */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="classification-select" className="text-xs">
+                Classification Level
+              </Label>
+              <Select
+                value={confidentialityLevel}
+                onValueChange={setConfidentialityLevel}
+                disabled={postMutation.isPending}
+              >
+                <SelectTrigger id="classification-select" className="h-9 text-xs">
+                  <SelectValue placeholder="Select classification" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Internal">Internal Use</SelectItem>
+                  <SelectItem value="Official Directive">Official Directive</SelectItem>
+                  <SelectItem value="Confidential">Confidential</SelectItem>
+                  <SelectItem value="Restricted">Restricted</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="expiry-date" className="text-xs">
+                Expiry Date (Optional)
+              </Label>
+              <Input
+                id="expiry-date"
+                type="date"
+                value={expiresAt}
+                onChange={(e) => setExpiresAt(e.target.value)}
+                disabled={postMutation.isPending}
+                className="h-9 text-xs"
+              />
+            </div>
           </div>
 
           {/* Message Content */}

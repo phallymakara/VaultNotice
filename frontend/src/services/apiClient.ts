@@ -1,4 +1,5 @@
 import {
+  AcknowledgementResponse,
   AnnouncementDetail,
   AnnouncementSummary,
   AuditLogItem,
@@ -83,6 +84,12 @@ class ApiClient {
 
   async getAnnouncementDetails(id: number): Promise<AnnouncementDetail> {
     return this.request<AnnouncementDetail>(`/announcements/${id}`)
+  }
+
+  async acknowledgeAnnouncement(id: number): Promise<AcknowledgementResponse> {
+    return this.request<AcknowledgementResponse>(`/announcements/${id}/acknowledge`, {
+      method: "POST",
+    })
   }
 
   async postAnnouncement(formData: FormData): Promise<AnnouncementDetail> {
