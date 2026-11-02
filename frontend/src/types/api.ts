@@ -69,6 +69,22 @@ export interface AnnouncementSummary {
   attachment_count: number
 }
 
+export interface GroupMemberItem {
+  id: string
+  name: string
+  email: string | null
+  role: string
+  department: string
+}
+
+export interface FullControlUserItem {
+  id: string
+  name: string
+  role: string
+  department: string
+  reason: string
+}
+
 export interface FileItem {
   id: number
   announcement_id: number
@@ -77,6 +93,9 @@ export interface FileItem {
   mime_type: string
   is_generated_pdf: boolean
   download_url: string
+  uploaded_by?: string
+  version?: string
+  last_modified?: string | null
 }
 
 export interface AnnouncementPermissionItem {
@@ -85,25 +104,38 @@ export interface AnnouncementPermissionItem {
   recipient_id: string
   recipient_name: string
   access_level: string
+  group_members?: GroupMemberItem[]
 }
 
 export interface AnnouncementDetail {
   id: number
   title: string
   folder_name: string
+  folder_url?: string
   message_content: string
   author_id: string
   author_name: string
+  author_role?: string
+  author_department?: string
   template_name?: string | null
   created_at: string
   status: string
+  error_message?: string | null
   confidentiality_level?: string
   expires_at?: string | null
   acknowledged?: boolean
   acknowledged_at?: string | null
   acknowledgement_count?: number
   target_summary: string[]
+  selected_recipients?: RecipientTarget[]
   permissions: AnnouncementPermissionItem[]
+  full_control_users?: FullControlUserItem[]
+  effective_access_count?: number
+  teams_alert_sent?: boolean
+  email_alert_sent?: boolean
+  alerts_sent_at?: string | null
+  alerted_users_count?: number
+  can_view_detailed_permissions?: boolean
   files: FileItem[]
 }
 

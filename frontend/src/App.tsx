@@ -1,3 +1,4 @@
+import { useState } from "react"
 import { usePersona } from "@/context/PersonaContext"
 import { useAppRouter } from "@/hooks/useAppRouter"
 import { Button } from "@/components/ui/button"
@@ -5,13 +6,17 @@ import { UserNav } from "@/components/layout/UserNav"
 import { AnnouncementsLibrary } from "@/components/webparts/AnnouncementsLibrary"
 import { AnnouncementDetailPage } from "@/components/webparts/AnnouncementDetailPage"
 import { NotificationModal } from "@/components/webparts/NotificationModal"
-import { AuditLogViewer } from "@/components/webparts/AuditLogViewer"
-import { TemplateManager } from "@/components/webparts/TemplateManager"
-import { 
-  Lock, 
-  Shield,
-  LayoutTemplate
-} from "lucide-react"
+import { Lock } from "lucide-react"
+
+const PORTAL_NAV_ITEMS = [
+  { id: "Home", label: "Home" },
+  { id: "By-Laws", label: "By-Laws" },
+  { id: "ARF", label: "ARF" },
+  { id: "Products", label: "Products" },
+  { id: "Job Vacancies", label: "Job Vacancies" },
+  { id: "Organization Chart", label: "Organization Chart" },
+  { id: "My Tasks", label: "My Tasks" },
+]
 
 export default function App() {
   const { activePersona } = usePersona()
@@ -20,55 +25,66 @@ export default function App() {
     selectedAnnouncementId,
     navigateToAnnouncement,
     navigateToAnnouncementsList,
-    navigateToTab,
   } = useAppRouter()
 
-  const isAdmin = activePersona.role === "Portal Admin"
+  const [activePortalTab, setActivePortalTab] = useState<string>("Home")
+
+  const handleLogoClick = () => {
+    setActivePortalTab("Home")
+    navigateToAnnouncementsList()
+  }
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col font-sans antialiased">
-      {/* Top Navigation Bar */}
+      {/* Top Navigation Bar with Portal Tabs */}
       <header className="sticky top-0 z-40 w-full border-b border-border bg-background/95 backdrop-blur-xs">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
-          {/* Left: Brand & Admin Navigation */}
-          <div className="flex items-center space-x-6">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between gap-4">
+          {/* Left: Brand & Portal Navigation */}
+          <div className="flex items-center space-x-6 min-w-0 flex-1">
             <button
-              onClick={navigateToAnnouncementsList}
-              className="flex items-center space-x-2.5 hover:opacity-90 transition-opacity cursor-pointer"
+              onClick={handleLogoClick}
+              className="flex items-center space-x-2.5 hover:opacity-90 transition-opacity cursor-pointer shrink-0"
             >
-              <div className="h-8 w-8 rounded-lg bg-primary text-primary-foreground flex items-center justify-center shadow-xs">
+              <div className="h-8 w-8 rounded-lg bg-primary text-primary-foreground flex items-center justify-center shadow-none">
                 <Lock className="w-4 h-4" />
               </div>
-              <span className="font-semibold text-base tracking-tight">VaultNotice</span>
+              <span className="font-semibold text-base tracking-tight hidden sm:inline">VaultNotice</span>
             </button>
 
-            {/* Admin Nav Links */}
-            {isAdmin && (
-              <nav className="hidden sm:flex items-center space-x-1">
-                <Button
-                  variant={activeTab === "templates" ? "secondary" : "ghost"}
-                  size="sm"
-                  onClick={() => navigateToTab(activeTab === "templates" ? "announcements" : "templates")}
-                  className="h-8 text-xs font-medium gap-1.5"
-                >
-                  <LayoutTemplate className="w-3.5 h-3.5" /> Templates
-                </Button>
-
-                <Button
-                  variant={activeTab === "audit" ? "secondary" : "ghost"}
-                  size="sm"
-                  onClick={() => navigateToTab(activeTab === "audit" ? "announcements" : "audit")}
-                  className="h-8 text-xs font-medium gap-1.5"
-                >
-                  <Shield className="w-3.5 h-3.5" /> Audit Trail
-                </Button>
-              </nav>
-            )}
+            {/* Portal Header Navigation Tabs */}
+            <nav className="flex items-center space-x-1 overflow-x-auto h-14 scrollbar-none">
+              {PORTAL_NAV_ITEMS.map((tab) => {
+                const isActive = activePortalTab === tab.id && activeTab === "announcements"
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => {
+                      setActivePortalTab(tab.id)
+                      if (tab.id === "Home") {
+                        navigateToAnnouncementsList()
+                      }
+                    }}
+                    className={`h-14 px-3 flex items-center text-xs sm:text-sm font-medium whitespace-nowrap border-b-2 transition-colors cursor-pointer ${
+                      isActive
+                        ? "border-[#002d62] text-slate-900 font-semibold"
+                        : "border-transparent text-slate-600 hover:text-slate-900 hover:border-slate-300"
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                )
+              })}
+            </nav>
           </div>
 
           {/* Right: Notifications & User Profile Menu */}
-          <div className="flex items-center space-x-3">
-            <NotificationModal onOpenAnnouncement={navigateToAnnouncement} />
+          <div className="flex items-center space-x-2 sm:space-x-3 shrink-0">
+            <NotificationModal
+              onOpenAnnouncement={(id) => {
+                setActivePortalTab("Home")
+                navigateToAnnouncement(id)
+              }}
+            />
             <UserNav />
           </div>
         </div>
@@ -76,10 +92,41 @@ export default function App() {
 
       {/* Main Content Area */}
       <main
-        key={`${activeTab}-${activePersona.id}-${selectedAnnouncementId ?? "list"}`}
-        className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 animate-fade-in"
+        key={`${activePortalTab}-${activeTab}-${activePersona.id}-${selectedAnnouncementId ?? "list"}`}
+        className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 animate-fade-in flex flex-col"
       >
-        {activeTab === "announcements" && (
+        {activePortalTab !== "Home" ? (
+          <div className="w-full max-w-6xl mx-auto py-6 animate-fade-in space-y-4">
+            <div className="flex items-center gap-1.5 text-xs text-slate-500 font-normal select-none">
+              <button
+                type="button"
+                onClick={handleLogoClick}
+                className="hover:text-slate-900 hover:underline cursor-pointer transition-colors"
+              >
+                Web Portal
+              </button>
+              <span>&gt;</span>
+              <span className="text-slate-700 font-medium">{activePortalTab}</span>
+            </div>
+
+            <div className="rounded-xl border border-slate-200 bg-white p-10 text-center space-y-3">
+              <h2 className="text-xl font-bold text-slate-800">{activePortalTab}</h2>
+              <p className="text-xs text-slate-500 max-w-md mx-auto">
+                Corporate intranet directory and resources for {activePortalTab}.
+              </p>
+              <div className="pt-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleLogoClick}
+                  className="text-xs"
+                >
+                  Return to Home
+                </Button>
+              </div>
+            </div>
+          </div>
+        ) : (
           selectedAnnouncementId ? (
             <AnnouncementDetailPage
               announcementId={selectedAnnouncementId}
@@ -89,8 +136,6 @@ export default function App() {
             <AnnouncementsLibrary onSelectAnnouncement={navigateToAnnouncement} />
           )
         )}
-        {activeTab === "templates" && isAdmin && <TemplateManager />}
-        {activeTab === "audit" && isAdmin && <AuditLogViewer />}
       </main>
     </div>
   )

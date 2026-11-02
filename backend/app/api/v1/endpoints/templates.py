@@ -50,8 +50,8 @@ def create_template_endpoint(
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)],
 ):
-    if current_user.role != "Portal Admin":
-        raise ForbiddenError("Only Portal Admins are authorized to manage templates.")
+    if current_user.role not in ("Portal Admin", "Management"):
+        raise ForbiddenError("Only Portal Admins or Management are authorized to manage templates.")
     return create_template(db, data)
 
 
@@ -64,8 +64,8 @@ def update_template_endpoint(
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[Session, Depends(get_db)],
 ):
-    if current_user.role != "Portal Admin":
-        raise ForbiddenError("Only Portal Admins are authorized to manage templates.")
+    if current_user.role not in ("Portal Admin", "Management"):
+        raise ForbiddenError("Only Portal Admins or Management are authorized to manage templates.")
     template = get_template_by_id(db, template_id)
     if not template:
         raise NotFoundError(f"Template with ID {template_id} not found.")

@@ -1,4 +1,4 @@
-from sqlalchemy import select
+from sqlalchemy import delete, select
 
 from app.core.logging import logger, setup_logging
 from app.db.session import SessionLocal
@@ -44,6 +44,55 @@ INITIAL_USERS = [
         "department": "Customer Service",
     },
     {
+        "id": "user-sokha",
+        "name": "Sokha Chan",
+        "email": "sokha.chan@company.com",
+        "role": "Staff",
+        "department": "Human Resources",
+    },
+    {
+        "id": "user-dara",
+        "name": "Dara Pich",
+        "email": "dara.pich@company.com",
+        "role": "Staff",
+        "department": "Credit & Lending",
+    },
+    {
+        "id": "user-bopha",
+        "name": "Bopha Meng",
+        "email": "bopha.meng@company.com",
+        "role": "Staff",
+        "department": "Compliance & Legal",
+    },
+    {
+        "id": "user-vichea",
+        "name": "Vichea Chea",
+        "email": "vichea.chea@company.com",
+        "role": "Staff",
+        "department": "IT Infrastructure",
+    },
+    {
+        "id": "user-kalyan",
+        "name": "Kalyan Roeun",
+        "email": "kalyan.roeun@company.com",
+        "role": "Staff",
+        "department": "Marketing & Communications",
+    },
+    {
+        "id": "user-rithy",
+        "name": "Rithy Sen",
+        "email": "rithy.sen@company.com",
+        "role": "Staff",
+        "department": "Internal Audit",
+    },
+    {
+        "id": "user-sovann",
+        "name": "Sovann Kong",
+        "email": "sovann.kong@company.com",
+        "role": "Staff",
+        "department": "Operations Team",
+    },
+    {
         "id": "user-admin",
         "name": "Portal Admin",
         "email": "admin@company.com",
@@ -53,6 +102,12 @@ INITIAL_USERS = [
 ]
 
 INITIAL_GROUPS = [
+    {
+        "id": "grp-all-staff",
+        "name": "All Staff",
+        "email": "all-staff@company.com",
+        "description": "All permanent, contract, and branch staff nationwide",
+    },
     {
         "id": "grp-management",
         "name": "Management",
@@ -69,7 +124,7 @@ INITIAL_GROUPS = [
         "id": "grp-finance",
         "name": "Finance Department",
         "email": "finance@company.com",
-        "description": "Corporate finance, treasury, and audit specialists",
+        "description": "Corporate finance, treasury, and accounting specialists",
     },
     {
         "id": "grp-operations",
@@ -78,23 +133,70 @@ INITIAL_GROUPS = [
         "description": "Branch support and frontline operations staff",
     },
     {
-        "id": "grp-portal-admins",
-        "name": "Portal Admins",
-        "email": "portal-admins@company.com",
-        "description": "IT portal and security administrators",
+        "id": "grp-hr",
+        "name": "Human Resources Department",
+        "email": "hr@company.com",
+        "description": "People, recruitment, talent development, and employee relations",
+    },
+    {
+        "id": "grp-it",
+        "name": "IT & Cybersecurity",
+        "email": "it@company.com",
+        "description": "Core banking systems, IT support, infrastructure, and cyber security",
+    },
+    {
+        "id": "grp-compliance",
+        "name": "Compliance & Legal",
+        "email": "compliance@company.com",
+        "description": "Regulatory compliance, AML/CFT, legal counsel, and risk controls",
+    },
+    {
+        "id": "grp-credit",
+        "name": "Credit & Lending",
+        "email": "credit@company.com",
+        "description": "Credit appraisal, loan origination, and portfolio monitoring",
+    },
+    {
+        "id": "grp-audit",
+        "name": "Internal Audit",
+        "email": "audit@company.com",
+        "description": "Internal inspection, risk assurance, and compliance audits",
+    },
+    {
+        "id": "grp-marketing",
+        "name": "Marketing & Communications",
+        "email": "marketing@company.com",
+        "description": "Brand strategy, public relations, and corporate communications",
     },
 ]
 
 INITIAL_MEMBERSHIPS = [
     ("user-sarah", "grp-management"),
+    ("user-sarah", "grp-all-staff"),
     ("user-david", "grp-branch-managers"),
     ("user-david", "grp-operations"),
+    ("user-david", "grp-all-staff"),
     ("user-sreyneath", "grp-branch-managers"),
     ("user-sreyneath", "grp-operations"),
+    ("user-sreyneath", "grp-all-staff"),
     ("user-emily", "grp-finance"),
+    ("user-emily", "grp-all-staff"),
     ("user-alex", "grp-operations"),
-    ("user-admin", "grp-portal-admins"),
-    ("user-admin", "grp-management"),
+    ("user-alex", "grp-all-staff"),
+    ("user-sokha", "grp-hr"),
+    ("user-sokha", "grp-all-staff"),
+    ("user-dara", "grp-credit"),
+    ("user-dara", "grp-all-staff"),
+    ("user-bopha", "grp-compliance"),
+    ("user-bopha", "grp-all-staff"),
+    ("user-vichea", "grp-it"),
+    ("user-vichea", "grp-all-staff"),
+    ("user-kalyan", "grp-marketing"),
+    ("user-kalyan", "grp-all-staff"),
+    ("user-rithy", "grp-audit"),
+    ("user-rithy", "grp-all-staff"),
+    ("user-sovann", "grp-operations"),
+    ("user-sovann", "grp-all-staff"),
 ]
 
 INITIAL_TEMPLATES = [

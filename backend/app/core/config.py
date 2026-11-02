@@ -9,7 +9,7 @@ class Settings(BaseSettings):
 
     # Database
     DATABASE_URL: str = (
-        "postgresql+psycopg2://postgres:postgres@localhost:5432/vaultnotice_db"
+        "postgresql+psycopg2://postgres:postgres@localhost:5445/vaultnotice_db"
     )
 
     # CORS

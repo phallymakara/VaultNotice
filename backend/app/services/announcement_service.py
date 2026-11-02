@@ -21,6 +21,7 @@ from app.repositories.announcement_repository import (
 from app.repositories.user_repository import (
     get_all_groups,
     get_all_users,
+    get_group_members,
     get_user_group_ids,
 )
 from app.schemas.announcement import (
@@ -28,6 +29,8 @@ from app.schemas.announcement import (
     AnnouncementDetailResponse,
     AnnouncementPermissionResponse,
     AnnouncementSummaryResponse,
+    FullControlUserResponse,
+    GroupMemberResponse,
     RecipientTarget,
 )
 from app.schemas.file import FileResponse
@@ -59,9 +62,17 @@ def build_announcement_summary(
     for perm in announcement.permissions:
         if perm.access_level != "FULL_CONTROL":
             name = perm.recipient_id
-            if perm.recipient_type == "USER" and users_map and perm.recipient_id in users_map:
+            if (
+                perm.recipient_type == "USER"
+                and users_map
+                and perm.recipient_id in users_map
+            ):
                 name = users_map[perm.recipient_id]
-            elif perm.recipient_type == "GROUP" and groups_map and perm.recipient_id in groups_map:
+            elif (
+                perm.recipient_type == "GROUP"
+                and groups_map
+                and perm.recipient_id in groups_map
+            ):
                 name = groups_map[perm.recipient_id]
             targets.append(name)
 
@@ -97,17 +108,68 @@ def build_announcement_detail(
     db: Session,
     current_user: User | None = None,
 ) -> AnnouncementDetailResponse:
-    users_map = {u.id: u.name for u in get_all_users(db)}
-    groups_map = {g.id: g.name for g in get_all_groups(db)}
+    all_users = get_all_users(db)
+    users_obj_map = {u.id: u for u in all_users}
+    users_map = {u.id: u.name for u in all_users}
+    groups_obj_map = {g.id: g for g in get_all_groups(db)}
+    groups_map = {g.id: g.name for g in groups_obj_map.values()}
+
+    # Determine user role / permissions for detail view
+    is_author = bool(current_user and announcement.author_id == current_user.id)
+    user_groups = get_user_group_ids(db, current_user.id) if current_user else []
+    is_admin = bool(
+        current_user
+        and (
+            current_user.role == "Portal Admin"
+            or "grp-portal-admins" in user_groups
+            or (
+                hasattr(current_user, "group_memberships")
+                and "Portal Admins"
+                in [
+                    m.group.name
+                    for m in current_user.group_memberships
+                    if getattr(m, "group", None)
+                ]
+            )
+        )
+    )
+    can_view_detailed_permissions = bool(is_author or is_admin)
 
     permissions_resp: list[AnnouncementPermissionResponse] = []
+    selected_recipients: list[RecipientTarget] = []
     targets: list[str] = []
+    accessible_user_ids: set[str] = {announcement.author_id}
+
+    # Add portal admins to accessible users set
+    admin_members = list(get_group_members(db, "grp-portal-admins"))
+    for adm in admin_members:
+        accessible_user_ids.add(adm.id)
 
     for perm in announcement.permissions:
         if perm.recipient_type == "USER":
             name = users_map.get(perm.recipient_id, perm.recipient_id)
+            accessible_user_ids.add(perm.recipient_id)
+            group_members_list: list[GroupMemberResponse] = []
         else:
             name = groups_map.get(perm.recipient_id, perm.recipient_id)
+            live_members = list(get_group_members(db, perm.recipient_id))
+            for m in live_members:
+                accessible_user_ids.add(m.id)
+
+            # Poster and admin see the member list behind each group, checked live
+            if can_view_detailed_permissions:
+                group_members_list = [
+                    GroupMemberResponse(
+                        id=m.id,
+                        name=m.name,
+                        email=m.email,
+                        role=m.role,
+                        department=m.department,
+                    )
+                    for m in live_members
+                ]
+            else:
+                group_members_list = []
 
         permissions_resp.append(
             AnnouncementPermissionResponse(
@@ -116,11 +178,49 @@ def build_announcement_detail(
                 recipient_id=perm.recipient_id,
                 recipient_name=name,
                 access_level=perm.access_level,
+                group_members=group_members_list,
             )
         )
         if perm.access_level != "FULL_CONTROL":
             targets.append(name)
+            selected_recipients.append(
+                RecipientTarget(
+                    type="USER" if perm.recipient_type == "USER" else "GROUP",
+                    id=perm.recipient_id,
+                    name=name,
+                )
+            )
 
+    # Full Control Users: Poster and admin see who has Full Control
+    full_control_users: list[FullControlUserResponse] = []
+    if can_view_detailed_permissions:
+        author_user = users_obj_map.get(announcement.author_id)
+        if author_user:
+            full_control_users.append(
+                FullControlUserResponse(
+                    id=author_user.id,
+                    name=author_user.name,
+                    role=author_user.role,
+                    department=author_user.department,
+                    reason="Author & Owner (Management)",
+                )
+            )
+        for adm in admin_members:
+            if adm.id != announcement.author_id:
+                full_control_users.append(
+                    FullControlUserResponse(
+                        id=adm.id,
+                        name=adm.name,
+                        role=adm.role,
+                        department=adm.department,
+                        reason="System Administrator (Portal Admin)",
+                    )
+                )
+
+    # Files with uploader, version, last modified
+    author_display_name = (
+        announcement.author.name if announcement.author else "Management"
+    )
     files_resp: list[FileResponse] = [
         FileResponse(
             id=f.id,
@@ -130,10 +230,40 @@ def build_announcement_detail(
             mime_type=f.mime_type,
             is_generated_pdf=f.is_generated_pdf,
             download_url=f"/api/v1/announcements/{announcement.id}/files/{f.id}/download",
+            uploaded_by="Automated System (PDF Engine)"
+            if f.is_generated_pdf
+            else author_display_name,
+            version="1.0",
+            last_modified=announcement.created_at,
         )
         for f in announcement.files
     ]
 
+    # Alert stats
+    notifications = announcement.notifications or []
+    teams_sent = (
+        any(n.channel == "TEAMS" for n in notifications) if notifications else True
+    )
+    email_sent = (
+        any(n.channel == "EMAIL" for n in notifications) if notifications else True
+    )
+    alerts_time = notifications[0].sent_at if notifications else announcement.created_at
+    alerted_count = (
+        len({n.recipient_user_id for n in notifications})
+        if notifications
+        else len(accessible_user_ids)
+    )
+
+    # Author details
+    author_role = announcement.author.role if announcement.author else "Management"
+    author_dept = (
+        announcement.author.department if announcement.author else "Executive Office"
+    )
+
+    # SharePoint folder link (simulated SharePoint Online document library path)
+    folder_url = f"https://prosethsolutions.sharepoint.com/sites/vaultnotice/SharedDocuments/{announcement.folder_name}"
+
+    # Acknowledgement status (preserved for schema compatibility)
     user_ack = next(
         (
             ack
@@ -150,9 +280,12 @@ def build_announcement_detail(
         id=announcement.id,
         title=announcement.title,
         folder_name=announcement.folder_name,
+        folder_url=folder_url,
         message_content=announcement.message_content,
         author_id=announcement.author_id,
-        author_name=announcement.author.name if announcement.author else "Management",
+        author_name=author_display_name,
+        author_role=author_role,
+        author_department=author_dept,
         template_name=announcement.template.name if announcement.template else None,
         confidentiality_level=announcement.confidentiality_level or "Internal",
         expires_at=announcement.expires_at,
@@ -160,9 +293,18 @@ def build_announcement_detail(
         acknowledged_at=acknowledged_at,
         acknowledgement_count=ack_count,
         created_at=announcement.created_at,
-        status=announcement.status,
+        status=announcement.status or "SUCCESS",
+        error_message=announcement.error_message,
         target_summary=targets,
+        selected_recipients=selected_recipients,
         permissions=permissions_resp,
+        full_control_users=full_control_users,
+        effective_access_count=len(accessible_user_ids),
+        teams_alert_sent=teams_sent,
+        email_alert_sent=email_sent,
+        alerts_sent_at=alerts_time,
+        alerted_users_count=alerted_count,
+        can_view_detailed_permissions=can_view_detailed_permissions,
         files=files_resp,
     )
 
@@ -208,7 +350,8 @@ async def process_and_create_announcement(
 
     if not recipients:
         raise APIError(
-            "At least one recipient user or group must be selected", status_code=400
+            "At least one audience recipient (User or Group) must be selected.",
+            status_code=400,
         )
 
     now = datetime.now(UTC)
@@ -216,7 +359,7 @@ async def process_and_create_announcement(
     folder_name = sanitize_folder_name(date_prefix, title)
 
     try:
-        # 2. Create physical folder
+        # 2. Create SharePoint-mirrored storage folder
         folder_path = create_announcement_folder(folder_name)
 
         # 3. Save uploaded attachments
@@ -268,7 +411,7 @@ async def process_and_create_announcement(
             ),
         )
 
-        # 5. Break inheritance and configure unique folder permissions (ACLs)
+        # 5. Break inheritance and assign explicit folder permissions (ACL)
         permissions: list[AnnouncementPermission] = [
             AnnouncementPermission(
                 recipient_type="USER",
@@ -359,7 +502,9 @@ def list_security_trimmed_announcements(
     users_map = {u.id: u.name for u in get_all_users(db)}
     groups_map = {g.id: g.name for g in get_all_groups(db)}
     return [
-        build_announcement_summary(a, users_map, groups_map, current_user_id=current_user.id)
+        build_announcement_summary(
+            a, users_map, groups_map, current_user_id=current_user.id
+        )
         for a in announcements
     ]
 

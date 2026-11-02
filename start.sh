@@ -57,7 +57,7 @@ echo "Waiting for PostgreSQL database container to become healthy..."
 until docker compose -p vaultnotice exec -T db pg_isready -U postgres -d vaultnotice_db > /dev/null 2>&1; do
     sleep 1
 done
-echo "  ✓ PostgreSQL is healthy on localhost:5432"
+echo "  ✓ PostgreSQL is healthy on localhost:${POSTGRES_PORT:-5445}"
 
 # 3. Database migrations & Seed data
 echo "[3/5] Applying migrations and seeding database..."
@@ -113,7 +113,7 @@ echo " DEMO PERSONAS (Switch easily via top-right dropdown in UI):"
 echo "----------------------------------------------------------------------"
 echo "  1. Sarah Lin (Management)      - Has 'Post Announcement' form & author access"
 echo "  2. David Miller (Staff)        - Branch Manager; targeted recipient"
-echo "  3. Sreyneath Meas (Staff)      - Compliance Officer; targeted recipient"
+echo "  3. Sreyneath Keo (Staff)       - Branch Manager; targeted recipient"
 echo "  4. Emily Tan (Staff)           - Finance Specialist; untargeted recipient"
 echo "  5. Alex Vorn (Staff)           - IT Support; untargeted recipient"
 echo "  6. Portal Admin                - Full platform & template management access"
@@ -125,4 +125,3 @@ echo "======================================================================"
 
 # Wait indefinitely until interrupted
 wait
-
