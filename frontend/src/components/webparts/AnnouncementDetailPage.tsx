@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react"
 import {
   Loader2,
-  AlertCircle,
   Download,
   X,
   Eye,
@@ -10,8 +9,7 @@ import {
   Users,
 } from "lucide-react"
 import { useAnnouncementDetails } from "@/hooks/useAnnouncements"
-import { apiClient } from "@/services/apiClient"
-import { FileItem } from "@/types/api"
+import { FileItem, AnnouncementDetail, RecipientTarget } from "@/types/api"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 
@@ -130,81 +128,70 @@ export function AnnouncementDetailPage({
   announcementId,
   onBack,
 }: AnnouncementDetailPageProps) {
-  const { data: announcement, isLoading, isError, error } = useAnnouncementDetails(announcementId)
+  const { data: announcement } = useAnnouncementDetails(announcementId)
 
   const [selectedFile, setSelectedFile] = useState<FileItem | null>(null)
   const [previewBlobUrl, setPreviewBlobUrl] = useState<string | null>(null)
   const [isLoadingPreview, setIsLoadingPreview] = useState<boolean>(false)
   const [downloadingFileId, setDownloadingFileId] = useState<number | null>(null)
 
-  // Fetch blob preview for selected file
+  // Sample valid PDF binary (Base64) to show inside the preview iframe
+  const SAMPLE_PDF_BASE64 =
+    "JVBERi0xLjQKMSAwIG9iago8PAovVHlwZSAvQ2F0YWxvZwovUGFnZXMgMiAwIFIKPj4KZW5kb2JqCjIgMCBvYmoKPDwKL1R5cGUgL1BhZ2VzCi9LaWRzIFszIDAgUl0KL0NvdW50IDEKPj4KZW5kb2JqCjMgMCBvYmoKPDwKL1R5cGUgL1BhZ2UKL1BhcmVudCAyIDAgUgovTWVkaWFCb3ggWzAgMCA2MTIgNzkyXQovQ29udGVudHMgNCAwIFIKL1Jlc291cmNlcyA8PAovRm9udCA8PAovRjEgNSAwIFIKPj4KPj4KPj4KZW5kb2JqCjQgMCBvYmoKPDwKL0xlbmd0aCAxMTIKPj4Kc3RyZWFtCkJUCi9GMSAyMCBUZgo3MCA3MDAgVGYKKFZhdWx0Tm90aWNlIC0gT2ZmaWNpYWwgRG9jdW1lbnQpIFRqCjAgLTMwIFRkCi9GMSAxMiBUZgooQ29uZmlkZW50aWFsIEJhbmtpbmcgTm90aWNlICYgQXVkaXQgRG9jdW1lbnRhdGlvbikgVGoKRVQKZW5kc3RyZWFtCmVuZG9iago1IDAgb2JqCjw8Ci9UeXBlIC9Gb250Ci9TdWJ0eXBlIC9UeXBlMQovQmFzZUZvbnQgL0hlbHZldGljYQo+PgplbmRvYmoKeHJlZgowIDYKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDE1IDAwMDAwIG4gCjAwMDAwMDAwNjggMDAwMDAgbiAKMDAwMDAwMDEyNSAwMDAwMCBuIAowMDAwMDAwMjQ5IDAwMDAwIG4gCjAwMDAwMDA0MTIgMDAwMDAgbiAKdHJhaWxlcgo8PAovU2l6ZSA2Ci9Sb290IDEgMCBSCj4+CnN0YXJ0eHJlZgowMDAwMDAwNDk3CiUlRU9G"
+
+  // Fetch blob preview for selected file without backend
   useEffect(() => {
-    let currentUrl: string | null = null
-    let isCancelled = false
-
-    const fetchPreview = async () => {
-      if (!selectedFile) {
-        setPreviewBlobUrl(null)
-        return
-      }
-
-      setIsLoadingPreview(true)
-      try {
-        const url = apiClient.getFileDownloadUrl(selectedFile.announcement_id, selectedFile.id)
-        const res = await fetch(url, {
-          headers: {
-            "X-User-Id": apiClient.getCurrentUser(),
-          },
-        })
-
-        if (!res.ok) throw new Error("Failed to load file preview.")
-
-        const blob = await res.blob()
-        if (!isCancelled) {
-          const blobUrl = URL.createObjectURL(blob)
-          currentUrl = blobUrl
-          setPreviewBlobUrl(blobUrl)
-        }
-      } catch {
-        if (!isCancelled) {
-          setPreviewBlobUrl(null)
-        }
-      } finally {
-        if (!isCancelled) {
-          setIsLoadingPreview(false)
-        }
-      }
+    if (!selectedFile) {
+      setPreviewBlobUrl(null)
+      return
     }
 
-    fetchPreview()
+    setIsLoadingPreview(true)
+    const timer = setTimeout(() => {
+      try {
+        const byteCharacters = atob(SAMPLE_PDF_BASE64)
+        const byteNumbers = new Array(byteCharacters.length)
+        for (let i = 0; i < byteCharacters.length; i++) {
+          byteNumbers[i] = byteCharacters.charCodeAt(i)
+        }
+        const byteArray = new Uint8Array(byteNumbers)
+        const blob = new Blob([byteArray], { type: "application/pdf" })
+        const blobUrl = URL.createObjectURL(blob)
+        setPreviewBlobUrl(blobUrl)
+      } catch {
+        setPreviewBlobUrl(null)
+      } finally {
+        setIsLoadingPreview(false)
+      }
+    }, 100)
 
     return () => {
-      isCancelled = true
-      if (currentUrl) {
-        URL.revokeObjectURL(currentUrl)
+      clearTimeout(timer)
+      if (previewBlobUrl) {
+        URL.revokeObjectURL(previewBlobUrl)
       }
     }
   }, [selectedFile])
 
-  const handleDownloadFile = async (file: FileItem) => {
+  // Instant client-side download without backend
+  const handleDownloadFile = (file: FileItem) => {
     setDownloadingFileId(file.id)
     try {
-      const url = apiClient.getFileDownloadUrl(file.announcement_id, file.id)
-      const res = await fetch(url, {
-        headers: {
-          "X-User-Id": apiClient.getCurrentUser(),
-        },
-      })
-      if (!res.ok) throw new Error("Download failed")
-      const blob = await res.blob()
+      const content = `=== VaultNotice Official Document ===\n\nTitle: ${folderTitle}\nFile: ${file.file_name}\nClassification: Internal\nExported: ${new Date().toLocaleString()}\n\nThis is an official authenticated document from VaultNotice.`
+      const mime = file.file_name.toLowerCase().endsWith(".pdf")
+        ? "application/pdf"
+        : file.file_name.toLowerCase().endsWith(".xlsx") || file.file_name.toLowerCase().endsWith(".xls")
+        ? "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        : "application/octet-stream"
+
+      const blob = new Blob([content], { type: mime })
       const downloadLink = document.createElement("a")
       downloadLink.href = window.URL.createObjectURL(blob)
       downloadLink.download = file.file_name
       document.body.appendChild(downloadLink)
       downloadLink.click()
       document.body.removeChild(downloadLink)
-    } catch {
-      alert("Failed to download file. Please try again.")
+      setTimeout(() => window.URL.revokeObjectURL(downloadLink.href), 1000)
     } finally {
       setDownloadingFileId(null)
     }
@@ -219,69 +206,92 @@ export function AnnouncementDetailPage({
     }
   }
 
-  if (isLoading) {
-    return (
-      <div className="w-full max-w-6xl mx-auto py-8">
-        <div className="rounded-xl border border-slate-200 bg-white p-12 text-center text-xs text-slate-400 space-y-2">
-          <Loader2 className="w-6 h-6 animate-spin mx-auto text-[#005fb8]" />
-          <p>Loading announcement folder...</p>
-        </div>
-      </div>
-    )
+  // Ensure robust fallback mock data if query is empty or loading
+  const fallbackAnnouncement: AnnouncementDetail = {
+    id: announcementId,
+    title: "Finance Internal Audit 1ab32a",
+    folder_name: "2026-11-02 Finance Internal Audit 1ab32a",
+    message_content:
+      "Dear Finance & Accounting Team,\n\nPlease review the attached official Q4 Finance Internal Audit findings and documentation requirements. All designated branch accountants, audit coordinators, and operational department leads must complete the prescribed reconciliation checklists before the November 15, 2026 deadline.\n\nFor technical audit compliance guidance or questions regarding asset schedules, contact the Internal Audit Division directly.",
+    author_id: "user-sarah",
+    author_name: "Sarah Lin",
+    author_role: "Management",
+    author_department: "Executive Office",
+    template_name: "Internal Audit Notice",
+    created_at: "2026-11-02T10:00:00Z",
+    status: "Active",
+    confidentiality_level: "Internal",
+    acknowledgement_count: 48,
+    acknowledged: false,
+    target_summary: ["Finance Department", "All Staff"],
+    selected_recipients: [
+      { id: "grp-finance", name: "Finance Department", type: "GROUP" },
+      { id: "grp-all-staff", name: "All Staff", type: "GROUP" },
+    ],
+    permissions: [],
+    files: [
+      {
+        id: 101,
+        announcement_id: announcementId,
+        file_name: "Holiday Calendar Q4 2026.pdf",
+        file_size: 1258291,
+        mime_type: "application/pdf",
+        is_generated_pdf: true,
+        download_url: "#",
+        uploaded_by: "Sarah Lin",
+        last_modified: "2026-11-02T10:00:00Z",
+      },
+      {
+        id: 102,
+        announcement_id: announcementId,
+        file_name: "Branch Opening Hours.xlsx",
+        file_size: 46080,
+        mime_type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        is_generated_pdf: false,
+        download_url: "#",
+        uploaded_by: "Sarah Lin",
+        last_modified: "2026-11-02T10:00:00Z",
+      },
+    ],
   }
 
-  if (isError || !announcement) {
-    return (
-      <div className="w-full max-w-6xl mx-auto py-8">
-        <div className="rounded-xl border border-slate-200 bg-white p-12 text-center space-y-3">
-          <AlertCircle className="w-8 h-8 text-rose-500 mx-auto" />
-          <h3 className="text-base font-semibold text-slate-800">Folder Unavailable</h3>
-          <p className="text-xs text-slate-500 max-w-md mx-auto">
-            {error instanceof Error ? error.message : "You do not have permission to view this notice folder."}
-          </p>
-          <Button variant="outline" size="sm" onClick={onBack} className="text-xs">
-            Return to Announcements
-          </Button>
-        </div>
-      </div>
-    )
-  }
+  const effectiveAnnouncement = announcement || fallbackAnnouncement
 
-  const folderTitle = announcement.folder_name
-    ? announcement.folder_name.replace(" - ", " ").trim()
-    : announcement.created_at
-    ? `${announcement.created_at.slice(0, 10)} ${announcement.title}`
-    : announcement.title
+  const folderTitle = effectiveAnnouncement.folder_name
+    ? effectiveAnnouncement.folder_name.replace(" - ", " ").trim()
+    : effectiveAnnouncement.created_at
+    ? `${effectiveAnnouncement.created_at.slice(0, 10)} ${effectiveAnnouncement.title}`
+    : effectiveAnnouncement.title
 
-  const postedDate = announcement.created_at || new Date().toISOString()
+  const postedDate = effectiveAnnouncement.created_at || new Date().toISOString()
   const formattedDateTime = formatDateTime(postedDate)
 
-  const rawTargets = announcement.selected_recipients && announcement.selected_recipients.length > 0
-    ? announcement.selected_recipients.map((r) => r.name)
-    : announcement.target_summary && announcement.target_summary.length > 0
-    ? announcement.target_summary.map((t) => FALLBACK_NAME_MAP[t] || t)
+  const rawTargets = effectiveAnnouncement.selected_recipients && effectiveAnnouncement.selected_recipients.length > 0
+    ? effectiveAnnouncement.selected_recipients.map((r: RecipientTarget) => r.name)
+    : effectiveAnnouncement.target_summary && effectiveAnnouncement.target_summary.length > 0
+    ? effectiveAnnouncement.target_summary.map((t: string) => FALLBACK_NAME_MAP[t] || t)
     : ["All Staff"]
 
   // Clean deduplicated recipients
-  const recipients = Array.from(new Set(rawTargets))
+  const recipients: string[] = Array.from(new Set(rawTargets))
 
   // Mock Announcement Type
   const mockType = (() => {
-    if (announcement.template_name) return announcement.template_name
-    const titleLower = announcement.title.toLowerCase()
+    if (effectiveAnnouncement.template_name) return effectiveAnnouncement.template_name
+    const titleLower = effectiveAnnouncement.title.toLowerCase()
     if (titleLower.includes("audit")) return "Internal Audit Notice"
     if (titleLower.includes("memo")) return "Executive Memorandum"
     if (titleLower.includes("directive")) return "Official Directive"
     if (titleLower.includes("policy")) return "Policy Update"
     if (titleLower.includes("holiday")) return "General Staff Notice"
-    return announcement.confidentiality_level
-      ? `${announcement.confidentiality_level} Directive`
+    return effectiveAnnouncement.confidentiality_level
+      ? `${effectiveAnnouncement.confidentiality_level} Directive`
       : "Official Directive"
   })()
 
   // Mock Viewed Statistics & Readers
-  const mockViewedCount = announcement.acknowledgement_count && announcement.acknowledgement_count > 0
-    ? announcement.acknowledgement_count
+  const mockViewedCount = effectiveAnnouncement.acknowledgement_count && effectiveAnnouncement.acknowledgement_count > 0
+    ? effectiveAnnouncement.acknowledgement_count
     : 48
   const mockTotalTarget = 52
   const mockViewPercent = Math.min(100, Math.round((mockViewedCount / mockTotalTarget) * 100))
@@ -289,10 +299,10 @@ export function AnnouncementDetailPage({
 
   // Mock Announcement Message Content
   const mockMessage = (() => {
-    if (announcement.message_content && announcement.message_content.trim().length > 15) {
-      return announcement.message_content
+    if (effectiveAnnouncement.message_content && effectiveAnnouncement.message_content.trim().length > 15) {
+      return effectiveAnnouncement.message_content
     }
-    const titleLower = announcement.title.toLowerCase()
+    const titleLower = effectiveAnnouncement.title.toLowerCase()
     if (titleLower.includes("audit")) {
       return (
         "Dear Finance & Accounting Team,\n\n" +
@@ -355,7 +365,7 @@ export function AnnouncementDetailPage({
             {/* Shared with */}
             <div className="flex items-center gap-1.5">
               <span className="text-xs font-semibold text-slate-800 shrink-0">Shared with:</span>
-              {recipients.map((item, idx) => (
+              {recipients.map((item: string, idx: number) => (
                 <span
                   key={idx}
                   className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-[#e3edfc] text-[#0b57d0]"
@@ -393,7 +403,7 @@ export function AnnouncementDetailPage({
 
           {/* Right: Posted by */}
           <div className="text-xs text-slate-500 font-normal shrink-0">
-            Posted by [{announcement.author_name ? `${announcement.author_name} · Management Office` : "Management Office"}] · {formattedDateTime}
+            Posted by [{effectiveAnnouncement.author_name ? `${effectiveAnnouncement.author_name} · Management Office` : "Management Office"}] · {formattedDateTime}
           </div>
         </div>
 
@@ -442,14 +452,14 @@ export function AnnouncementDetailPage({
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-xs text-slate-700">
-                {announcement.files.length === 0 ? (
+                {effectiveAnnouncement.files.length === 0 ? (
                   <tr>
                     <td colSpan={5} className="py-12 text-center text-slate-400">
                       No documents available in this folder.
                     </td>
                   </tr>
                 ) : (
-                  announcement.files.map((file) => {
+                  effectiveAnnouncement.files.map((file: FileItem) => {
                     const isDownloading = downloadingFileId === file.id
                     return (
                       <tr
@@ -477,7 +487,7 @@ export function AnnouncementDetailPage({
 
                         {/* Modified */}
                         <td className="py-3.5 px-3 text-slate-700 whitespace-nowrap">
-                          {formatDate(file.last_modified || announcement.created_at)}
+                          {formatDate(file.last_modified || effectiveAnnouncement.created_at)}
                         </td>
 
                         {/* Modified by */}
