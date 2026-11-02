@@ -1,0 +1,1429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SharePoint Management Announcement Web Part Prototype</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Phosphor Icons for Fluent UI / Office style icons -->
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Segoe+UI:ital,wght@0,300;0,400;0,600;0,700;1,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            segoe: ['"Segoe UI"', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+            inter: ['Inter', 'sans-serif'],
+          },
+          colors: {
+            sp: {
+              themePrimary: '#0078d4',
+              themeDark: '#005a9e',
+              themeDarkAlt: '#106ebe',
+              themeLight: '#deecf9',
+              neutralDark: '#201f1e',
+              neutralPrimary: '#323130',
+              neutralSecondary: '#605e5c',
+              neutralLight: '#edebe9',
+              neutralLighter: '#f3f2f1',
+              neutralLighterAlt: '#faf9f8',
+              navyHeader: '#0b3964',
+              cardDark: '#0b3964',
+              teamsColor: '#464775',
+              teamsBg: '#393b67',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, "Roboto", sans-serif;
+      background-color: #f5f6f8;
+      color: #323130;
+      -webkit-font-smoothing: antialiased;
+    }
+    .custom-scroll::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background: #c8c6c4;
+      border-radius: 4px;
+    }
+    .custom-scroll::-webkit-scrollbar-track {
+      background: #f3f2f1;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between">
+
+  <!-- ================= TOP MICROSOFT 365 SUITE BAR ================= -->
+  <header class="bg-[#1b1a19] text-white text-sm select-none z-30 sticky top-0 border-b border-[#292827]">
+    <div class="max-w-[1720px] mx-auto px-3 sm:px-5 h-12 flex items-center justify-between gap-4">
+      
+      <!-- Left: Waffle + SharePoint Brand -->
+      <div class="flex items-center gap-4">
+        <!-- 9-dots waffle app launcher -->
+        <button class="w-8 h-8 rounded hover:bg-[#323130] flex items-center justify-center transition text-gray-200" title="App Launcher">
+          <i class="ph-bold ph-dots-nine text-xl"></i>
+        </button>
+        <div class="flex items-center gap-2 cursor-pointer">
+          <span class="font-semibold text-[15px] tracking-tight text-white flex items-center gap-2">
+            <svg class="w-5 h-5 text-teal-400" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14.5v-9l6 4.5-6 4.5z"/>
+            </svg>
+            SharePoint
+          </span>
+        </div>
+      </div>
+
+      <!-- Center: Global Search Bar -->
+      <div class="flex-1 max-w-xl mx-4 hidden md:block">
+        <div class="relative">
+          <i class="ph ph-magnifying-glass absolute left-3 top-2.5 text-gray-400 text-base"></i>
+          <input 
+            type="text" 
+            placeholder="Search this site" 
+            class="w-full bg-[#292827] focus:bg-white text-white focus:text-neutral-900 placeholder-gray-400 pl-9 pr-4 py-1.5 rounded text-xs transition duration-150 outline-none border border-transparent focus:border-blue-500"
+          />
+        </div>
+      </div>
+
+      <!-- Right: Role Switcher & User Profile Simulator -->
+      <div class="flex items-center gap-3">
+        <!-- Prototype Role Switcher Badge -->
+        <div class="hidden sm:flex items-center bg-[#292827] rounded-full px-2 py-0.5 border border-[#3f3e3d]">
+          <span class="text-[11px] text-gray-400 font-medium mr-1.5 pl-1.5 flex items-center gap-1">
+            <i class="ph-fill ph-user-switch"></i> Role:
+          </span>
+          <select id="roleSelector" onchange="switchRole(this.value)" class="bg-transparent text-xs text-blue-300 font-semibold focus:outline-none cursor-pointer py-1 pr-1">
+            <option value="management" class="bg-[#1b1a19] text-white">Management (Poster)</option>
+            <option value="staff" class="bg-[#1b1a19] text-white">Staff (Recipient - Branch Mgr)</option>
+            <option value="other_staff" class="bg-[#1b1a19] text-white">Staff (General - Teller)</option>
+            <option value="admin" class="bg-[#1b1a19] text-white">Portal Admin</option>
+          </select>
+        </div>
+
+        <!-- Notification Bell & Alert Trigger View -->
+        <button onclick="openNotificationModal()" class="relative p-1.5 rounded hover:bg-[#323130] text-gray-300 hover:text-white" title="Simulated Alerts (Email & Teams)">
+          <i class="ph-bold ph-bell text-lg"></i>
+          <span id="unreadBadge" class="absolute top-1 right-1 w-2 h-2 bg-blue-500 rounded-full animate-pulse"></span>
+        </button>
+
+        <!-- User Avatar -->
+        <div class="flex items-center gap-2 pl-1 cursor-pointer">
+          <div id="userAvatar" class="w-8 h-8 rounded-full bg-blue-700 text-white flex items-center justify-center font-semibold text-xs border border-blue-400">
+            MD
+          </div>
+          <div class="hidden lg:block text-left leading-tight">
+            <div id="userName" class="text-xs font-semibold text-white">Michael Davis</div>
+            <div id="userRoleTitle" class="text-[10px] text-gray-400">Management Office</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ================= PORTAL HEADER & NAVIGATION ================= -->
+  <div class="bg-white border-b border-gray-200 shadow-sm">
+    <div class="max-w-[1720px] mx-auto px-4 sm:px-8 py-3">
+      <!-- Title & Branding -->
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-full bg-[#0078d4] text-white flex items-center justify-center shadow">
+          <i class="ph-bold ph-buildings text-xl"></i>
+        </div>
+        <div>
+          <h1 class="text-2xl font-bold tracking-tight text-gray-900">Web Portal</h1>
+          <p class="text-xs text-gray-500">Corporate Intranet & Operations Hub</p>
+        </div>
+      </div>
+
+      <!-- Navigation Bar -->
+      <nav class="flex items-center gap-6 mt-4 pt-1 border-t border-gray-100 overflow-x-auto text-sm font-medium">
+        <a href="#" class="text-[#0078d4] border-b-2 border-[#0078d4] pb-2 font-semibold flex items-center gap-1.5 whitespace-nowrap">
+          <span>Home</span>
+        </a>
+        <a href="#" class="text-gray-600 hover:text-gray-900 pb-2 border-b-2 border-transparent hover:border-gray-300 transition whitespace-nowrap">By-Laws</a>
+        <a href="#" class="text-gray-600 hover:text-gray-900 pb-2 border-b-2 border-transparent hover:border-gray-300 transition whitespace-nowrap">ARF</a>
+        <a href="#" class="text-gray-600 hover:text-gray-900 pb-2 border-b-2 border-transparent hover:border-gray-300 transition whitespace-nowrap">Products</a>
+        <a href="#" class="text-gray-600 hover:text-gray-900 pb-2 border-b-2 border-transparent hover:border-gray-300 transition whitespace-nowrap">Job Vacancies</a>
+        <a href="#" class="text-gray-600 hover:text-gray-900 pb-2 border-b-2 border-transparent hover:border-gray-300 transition whitespace-nowrap">Organization Chart</a>
+        <a href="#" class="text-gray-600 hover:text-gray-900 pb-2 border-b-2 border-transparent hover:border-gray-300 transition whitespace-nowrap">My Tasks</a>
+      </nav>
+    </div>
+  </div>
+
+  <!-- Role Notification Banner (Helpful for prototyping evaluation) -->
+  <div id="roleBanner" class="bg-blue-50 border-b border-blue-200 text-blue-900 px-6 py-2 text-xs flex items-center justify-between">
+    <div class="flex items-center gap-2">
+      <i class="ph-fill ph-info text-blue-600 text-base"></i>
+      <span id="roleBannerText"><strong>Management View active:</strong> Audience targeting shows the "Post announcement" Power Apps form and documents list.</span>
+    </div>
+    <div class="flex items-center gap-3">
+      <button onclick="openNotificationModal()" class="underline hover:text-blue-700 font-semibold flex items-center gap-1">
+        <i class="ph-bold ph-envelope"></i> View Recipient Email/Teams Alert Mockup
+      </button>
+    </div>
+  </div>
+
+  <!-- ================= MAIN DASHBOARD BODY ================= -->
+  <main class="max-w-[1720px] mx-auto px-4 sm:px-8 py-6 flex-1 w-full">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      
+      <!-- LEFT COLUMN: Existing Banner Carousel (stays unchanged as in proposal) -->
+      <section class="lg:col-span-7 space-y-6">
+        <!-- CEO Carousel Placeholder styled exactly to document specs -->
+        <div class="rounded-xl border-2 border-dashed border-gray-300 bg-white/70 p-8 sm:p-12 text-center min-h-[460px] flex flex-col items-center justify-center relative shadow-sm hover:border-gray-400 transition">
+          <div class="w-20 h-20 rounded-2xl bg-gray-100 flex items-center justify-center text-gray-400 mb-4 shadow-inner">
+            <i class="ph ph-presentation-chart text-4xl"></i>
+          </div>
+          <h2 class="text-xl font-bold text-gray-800">Existing banner (unchanged)</h2>
+          <p class="text-sm text-gray-500 max-w-md mt-2 leading-relaxed">
+            CEO Message carousel stays as it is today. Highlighting quarterly leadership letters, strategic company updates, and vision broadcasts.
+          </p>
+
+          <!-- Simulated Carousel Dots & Arrows -->
+          <div class="flex items-center gap-3 mt-8">
+            <button class="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-600 text-sm">
+              <i class="ph-bold ph-caret-left"></i>
+            </button>
+            <div class="flex gap-1.5">
+              <span class="w-2.5 h-2.5 rounded-full bg-[#0078d4]"></span>
+              <span class="w-2.5 h-2.5 rounded-full bg-gray-300"></span>
+              <span class="w-2.5 h-2.5 rounded-full bg-gray-300"></span>
+            </div>
+            <button class="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-600 text-sm">
+              <i class="ph-bold ph-caret-right"></i>
+            </button>
+          </div>
+
+          <div class="absolute bottom-4 text-xs text-gray-400 flex items-center gap-1">
+            <i class="ph ph-lock-key"></i> Unaffected SharePoint Web Part Zone
+          </div>
+        </div>
+
+        <!-- Extra portal widgets for realistic context -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
+          <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex items-center gap-3">
+            <div class="p-3 bg-blue-50 text-blue-700 rounded-lg">
+              <i class="ph-bold ph-file-text text-xl"></i>
+            </div>
+            <div>
+              <div class="text-xs text-gray-500 font-medium">Quick Forms</div>
+              <div class="text-sm font-semibold text-gray-800">Travel & ARF Request</div>
+            </div>
+          </div>
+          <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex items-center gap-3">
+            <div class="p-3 bg-emerald-50 text-emerald-700 rounded-lg">
+              <i class="ph-bold ph-calendar-check text-xl"></i>
+            </div>
+            <div>
+              <div class="text-xs text-gray-500 font-medium">Corporate Calendar</div>
+              <div class="text-sm font-semibold text-gray-800">2026 Town Halls</div>
+            </div>
+          </div>
+          <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex items-center gap-3">
+            <div class="p-3 bg-purple-50 text-purple-700 rounded-lg">
+              <i class="ph-bold ph-users-three text-xl"></i>
+            </div>
+            <div>
+              <div class="text-xs text-gray-500 font-medium">Directory</div>
+              <div class="text-sm font-semibold text-gray-800">Org Chart Explorer</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- RIGHT COLUMN: Web Part Zone (Post Form + Announcements List) -->
+      <section class="lg:col-span-5 space-y-6">
+
+        <!-- ================= 1. POST ANNOUNCEMENT (POWER APPS FORM) ================= -->
+        <!-- Shown only to Management & Portal Admin via SharePoint Audience Targeting -->
+        <div id="postFormCard" class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden transition-all duration-300">
+          
+          <!-- Header (Styled according to proposal mockup: Deep Navy) -->
+          <div class="bg-[#0b3964] text-white px-5 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-lg bg-white/10 flex items-center justify-center text-white">
+                <i class="ph-bold ph-megaphone text-xl"></i>
+              </div>
+              <div>
+                <h3 class="font-bold text-base tracking-normal">Post announcement</h3>
+                <p class="text-xs text-blue-200">Visible to management only</p>
+              </div>
+            </div>
+            <span class="text-[11px] bg-white/15 px-2.5 py-0.5 rounded-full font-medium tracking-wide border border-white/10">
+              Power Apps
+            </span>
+          </div>
+
+          <!-- Form Body -->
+          <form id="announcementForm" onsubmit="handlePostSubmit(event)" class="p-5 space-y-4">
+            
+            <!-- Template Dropdown -->
+            <div>
+              <label class="block text-xs font-semibold text-gray-700 mb-1">Template</label>
+              <div class="relative">
+                <select 
+                  id="templateSelect" 
+                  onchange="applyTemplate(this.value)" 
+                  class="w-full text-xs bg-gray-50 hover:bg-gray-100/80 border border-gray-300 rounded-lg p-2.5 text-gray-800 font-medium focus:ring-2 focus:ring-[#0078d4] focus:outline-none focus:bg-white cursor-pointer transition">
+                  <option value="holiday">Holiday notice</option>
+                  <option value="policy">Policy update</option>
+                  <option value="townhall">Staff Town Hall Invitation</option>
+                  <option value="security">IT Security Reminder</option>
+                  <option value="blank">Blank (Write from scratch)</option>
+                </select>
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
+                  <i class="ph-bold ph-caret-down text-xs"></i>
+                </div>
+              </div>
+            </div>
+
+            <!-- Title Input -->
+            <div>
+              <label class="block text-xs font-semibold text-gray-700 mb-1">Title</label>
+              <input 
+                type="text" 
+                id="postTitle" 
+                value="Holiday Schedule Q4" 
+                placeholder="Enter announcement title..."
+                class="w-full text-xs font-semibold text-gray-800 border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-[#0078d4] focus:outline-none focus:border-[#0078d4] transition"
+                required
+              />
+            </div>
+
+            <!-- Message Textarea -->
+            <div>
+              <div class="flex justify-between items-center mb-1">
+                <label class="block text-xs font-semibold text-gray-700">Message</label>
+                <span class="text-[11px] text-gray-400">Generates PDF summary</span>
+              </div>
+              <div class="border border-gray-300 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-[#0078d4] focus-within:border-[#0078d4]">
+                <!-- Simulated Rich Text Toolbar -->
+                <div class="bg-gray-100 border-b border-gray-200 px-2 py-1.5 flex items-center gap-1 text-gray-600 text-xs">
+                  <button type="button" class="p-1 hover:bg-gray-200 rounded font-bold" title="Bold">B</button>
+                  <button type="button" class="p-1 hover:bg-gray-200 rounded italic" title="Italic">I</button>
+                  <button type="button" class="p-1 hover:bg-gray-200 rounded underline" title="Underline">U</button>
+                  <span class="h-3 w-px bg-gray-300 mx-1"></span>
+                  <button type="button" class="p-1 hover:bg-gray-200 rounded" title="Bullet List"><i class="ph-bold ph-list-bullets"></i></button>
+                  <button type="button" class="p-1 hover:bg-gray-200 rounded" title="Link"><i class="ph-bold ph-link"></i></button>
+                </div>
+                <textarea 
+                  id="postMessage" 
+                  rows="3" 
+                  class="w-full text-xs text-gray-800 p-2.5 outline-none resize-none leading-relaxed" 
+                  placeholder="Type message content..."
+                  required>Dear colleagues,
+Please find attached the public holiday schedule for October to December 2026 and the branch opening arrangements.</textarea>
+              </div>
+            </div>
+
+            <!-- Recipient People Picker (Users & M365 Groups) -->
+            <div>
+              <div class="flex items-center justify-between mb-1">
+                <label class="block text-xs font-semibold text-gray-700">Send to (users or groups)</label>
+                <span class="text-[10px] text-gray-400">Folder inherits access</span>
+              </div>
+              <div class="border border-gray-300 rounded-lg p-2 min-h-[46px] bg-white flex flex-wrap items-center gap-1.5 focus-within:ring-2 focus-within:ring-[#0078d4] focus-within:border-[#0078d4] transition relative" id="recipientsContainer">
+                
+                <!-- Active Pills -->
+                <div id="pillsWrapper" class="flex flex-wrap gap-1.5">
+                  <span class="inline-flex items-center gap-1 bg-blue-50 border border-blue-200 text-blue-800 rounded-full text-xs px-2.5 py-0.5">
+                    <span class="w-4 h-4 rounded-full bg-blue-600 text-white flex items-center justify-center text-[10px] font-bold">G</span>
+                    <span class="font-medium">All Staff</span>
+                    <button type="button" onclick="removeRecipient(this)" class="hover:text-blue-900 text-gray-400 ml-0.5">&times;</button>
+                  </span>
+                  <span class="inline-flex items-center gap-1 bg-blue-50 border border-blue-200 text-blue-800 rounded-full text-xs px-2.5 py-0.5">
+                    <span class="w-4 h-4 rounded-full bg-blue-600 text-white flex items-center justify-center text-[10px] font-bold">G</span>
+                    <span class="font-medium">Branch Managers</span>
+                    <button type="button" onclick="removeRecipient(this)" class="hover:text-blue-900 text-gray-400 ml-0.5">&times;</button>
+                  </span>
+                </div>
+
+                <!-- Input to search/add -->
+                <div class="flex-1 min-w-[120px] relative">
+                  <input 
+                    type="text" 
+                    id="recipientInput" 
+                    onfocus="showRecipientDropdown(true)" 
+                    onkeyup="filterRecipients(this.value)" 
+                    placeholder="Add people or groups..." 
+                    class="w-full text-xs outline-none bg-transparent py-0.5 placeholder-gray-400"
+                  />
+                  
+                  <!-- People Picker Directory Auto-complete -->
+                  <div id="recipientDropdown" class="hidden absolute top-full left-0 right-0 mt-2 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-30 max-h-48 overflow-y-auto">
+                    <div class="text-[10px] uppercase font-bold text-gray-400 px-3 py-1">Directory suggestions</div>
+                    <div onclick="addRecipient('Department Heads', 'G')" class="px-3 py-1.5 text-xs hover:bg-gray-100 cursor-pointer flex items-center justify-between">
+                      <div class="flex items-center gap-2">
+                        <span class="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center text-[10px] font-bold">G</span>
+                        <span class="font-medium">Department Heads</span>
+                      </div>
+                      <span class="text-[10px] text-gray-400">M365 Group</span>
+                    </div>
+                    <div onclick="addRecipient('Finance & Accounting', 'G')" class="px-3 py-1.5 text-xs hover:bg-gray-100 cursor-pointer flex items-center justify-between">
+                      <div class="flex items-center gap-2">
+                        <span class="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center text-[10px] font-bold">G</span>
+                        <span class="font-medium">Finance & Accounting</span>
+                      </div>
+                      <span class="text-[10px] text-gray-400">Security Group</span>
+                    </div>
+                    <div onclick="addRecipient('Sarah Jenkins', 'U')" class="px-3 py-1.5 text-xs hover:bg-gray-100 cursor-pointer flex items-center justify-between">
+                      <div class="flex items-center gap-2">
+                        <span class="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[10px] font-bold">SJ</span>
+                        <span class="font-medium">Sarah Jenkins</span>
+                      </div>
+                      <span class="text-[10px] text-gray-400">Head of Operations</span>
+                    </div>
+                    <div onclick="addRecipient('All Staff', 'G')" class="px-3 py-1.5 text-xs hover:bg-gray-100 cursor-pointer flex items-center justify-between">
+                      <div class="flex items-center gap-2">
+                        <span class="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center text-[10px] font-bold">G</span>
+                        <span class="font-medium">All Staff</span>
+                      </div>
+                      <span class="text-[10px] text-gray-400">Org-wide Group</span>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+            <!-- Attachments Upload Section -->
+            <div>
+              <div class="flex justify-between items-center mb-1">
+                <label class="block text-xs font-semibold text-gray-700">Attachments</label>
+                <span class="text-[10px] text-gray-400">Saved in announcement folder</span>
+              </div>
+              <div id="attachmentList" class="space-y-1.5 mb-2">
+                <!-- PDF File -->
+                <div class="attachment-item flex items-center justify-between p-2 rounded-lg bg-gray-50 border border-gray-200 text-xs">
+                  <div class="flex items-center gap-2 truncate">
+                    <span class="w-5 h-5 rounded bg-red-600 text-white text-[9px] font-bold flex items-center justify-center">PDF</span>
+                    <span class="truncate font-medium text-gray-800" data-filename="Holiday Calendar Q4 2026.pdf">Holiday Calendar Q4 2026.pdf</span>
+                    <span class="text-[10px] text-gray-400">212 KB</span>
+                  </div>
+                  <button type="button" onclick="this.closest('.attachment-item').remove()" class="text-gray-400 hover:text-red-500 p-1">
+                    <i class="ph-bold ph-x"></i>
+                  </button>
+                </div>
+                <!-- Excel File -->
+                <div class="attachment-item flex items-center justify-between p-2 rounded-lg bg-gray-50 border border-gray-200 text-xs">
+                  <div class="flex items-center gap-2 truncate">
+                    <span class="w-5 h-5 rounded bg-emerald-600 text-white text-[9px] font-bold flex items-center justify-center">X</span>
+                    <span class="truncate font-medium text-gray-800" data-filename="Branch Opening Hours.xlsx">Branch Opening Hours.xlsx</span>
+                    <span class="text-[10px] text-gray-400">36 KB</span>
+                  </div>
+                  <button type="button" onclick="this.closest('.attachment-item').remove()" class="text-gray-400 hover:text-red-500 p-1">
+                    <i class="ph-bold ph-x"></i>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Attach file button -->
+              <button type="button" onclick="promptSimulatedUpload()" class="text-xs text-[#0078d4] font-semibold hover:underline flex items-center gap-1.5">
+                <i class="ph-bold ph-plus"></i> Attach file
+              </button>
+            </div>
+
+            <!-- Submit Button & Disclaimer -->
+            <div class="pt-2">
+              <button 
+                type="submit" 
+                id="submitPostBtn" 
+                class="w-full bg-[#0078d4] hover:bg-[#005a9e] text-white py-2.5 rounded-lg text-xs font-semibold shadow-sm transition duration-150 flex items-center justify-center gap-2">
+                <span>Post</span>
+                <i class="ph-bold ph-paper-plane-right text-sm"></i>
+              </button>
+              <p class="text-[11px] text-gray-500 text-center mt-2 px-3 leading-normal">
+                Creates a folder only the selected people and groups can open, and emails them a link.
+              </p>
+            </div>
+
+          </form>
+        </div>
+
+        <!-- ================= 2. ANNOUNCEMENTS DOCUMENT LIBRARY WEB PART ================= -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          
+          <!-- Library Header -->
+          <div class="p-4 border-b border-gray-200 flex items-center justify-between">
+            <div>
+              <div class="flex items-center gap-2">
+                <h3 class="font-bold text-gray-900 text-base">Announcements</h3>
+                <span id="folderCountBadge" class="bg-gray-100 text-gray-600 text-[11px] px-2 py-0.5 rounded-full font-semibold">4 items</span>
+              </div>
+              <p class="text-xs text-gray-500 mt-0.5">Newest first &middot; only those shared with you</p>
+            </div>
+            <a href="javascript:void(0)" onclick="refreshLibraryView()" class="text-xs text-[#0078d4] hover:underline font-semibold flex items-center gap-1">
+              <i class="ph-bold ph-arrows-clockwise"></i> See all
+            </a>
+          </div>
+
+          <!-- Document Library Folders List -->
+          <div id="announcementLibraryList" class="divide-y divide-gray-100">
+            <!-- Folders will be populated dynamically by JS -->
+          </div>
+
+          <!-- Bottom Action / Matched Opportunity Rate Banner as in SharePoint Mockup -->
+          <div class="p-3 bg-gray-50 border-t border-gray-200 text-center">
+            <button class="w-full py-2.5 px-4 bg-[#0b3964] hover:bg-[#082949] text-white text-xs font-semibold rounded-lg shadow-sm transition">
+              Matched Opportunity Rate (MOR)
+            </button>
+          </div>
+
+        </div>
+
+      </section>
+
+    </div>
+  </main>
+
+  <!-- ================= FOOTER / AUDIT TRAIL BAR ================= -->
+  <footer class="bg-white border-t border-gray-200 text-xs text-gray-500 py-3 px-6 mt-8">
+    <div class="max-w-[1720px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
+      <div class="flex items-center gap-4">
+        <span>SharePoint Online Solution: <strong>Management Announcement Web Part</strong></span>
+        <span class="hidden sm:inline">&bull;</span>
+        <span class="text-gray-400">Power Automate Flow: v1.4 (Automated Unique Folder ACL)</span>
+      </div>
+      <div class="flex items-center gap-3">
+        <span class="inline-flex items-center gap-1.5 text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 font-medium">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Service Account Ready
+        </span>
+        <button onclick="openNotificationModal()" class="text-blue-600 hover:underline">Notification Previews</button>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ================= MODAL: FOLDER DETAILS & FILE EXPLORER ================= -->
+  <div id="folderModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-4xl rounded-2xl shadow-2xl border border-gray-200 overflow-hidden transform transition-all duration-200">
+      
+      <!-- Top Title Bar with Breadcrumb -->
+      <div class="bg-gray-50 border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+        <div>
+          <div class="text-xs text-gray-500 flex items-center gap-1.5 font-medium mb-1">
+            <span>Web Portal</span>
+            <i class="ph-bold ph-caret-right text-[10px] text-gray-400"></i>
+            <span>Announcements</span>
+            <i class="ph-bold ph-caret-right text-[10px] text-gray-400"></i>
+            <span id="modalBreadcrumb" class="text-gray-800 font-semibold truncate max-w-xs">2026-10-22 Holiday Schedule Q4</span>
+          </div>
+          <h2 id="modalFolderTitle" class="text-xl font-bold text-gray-900 tracking-tight">2026-10-22 Holiday Schedule Q4</h2>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="inline-flex items-center gap-1 bg-amber-50 text-amber-800 border border-amber-200 px-3 py-1 rounded-full text-xs font-semibold">
+            <i class="ph-fill ph-lock-key text-amber-600"></i> Private folder
+          </span>
+          <button onclick="closeFolderModal()" class="w-8 h-8 rounded-full hover:bg-gray-200 flex items-center justify-center text-gray-500 hover:text-gray-800 transition">
+            <i class="ph-bold ph-x text-lg"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Metadata & Access Permissions Banner -->
+      <div class="px-6 py-3 bg-blue-50/60 border-b border-blue-100 flex flex-wrap items-center justify-between gap-3 text-xs">
+        <div class="flex items-center gap-2">
+          <span class="font-bold text-gray-700">Shared with:</span>
+          <div id="modalSharedTags" class="flex flex-wrap gap-1">
+            <!-- tags populated dynamically -->
+          </div>
+        </div>
+        <div class="text-gray-500 flex items-center gap-3">
+          <span id="modalPostedBy">Posted by [Management Office]</span>
+          <span>&bull;</span>
+          <span id="modalPostedDate">22 Oct 2026, 2:15 PM</span>
+        </div>
+      </div>
+
+      <!-- Announcement Content Preview Accordion -->
+      <div class="px-6 py-4 bg-gray-50/50 border-b border-gray-200">
+        <div class="flex items-center justify-between cursor-pointer" onclick="toggleMessageDetails()">
+          <span class="text-xs font-bold text-gray-700 flex items-center gap-1.5">
+            <i class="ph-bold ph-article text-blue-600"></i> Announcement Text Content (Converted to PDF by Power Automate)
+          </span>
+          <i id="msgToggleIcon" class="ph-bold ph-caret-down text-xs text-gray-500 transition-transform"></i>
+        </div>
+        <div id="modalMessageBody" class="mt-2 text-xs text-gray-700 whitespace-pre-line leading-relaxed bg-white p-3 rounded-lg border border-gray-200 shadow-inner">
+          <!-- Text preview -->
+        </div>
+      </div>
+
+      <!-- SharePoint File Library Table -->
+      <div class="p-6">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr class="border-b border-gray-200 text-gray-500 font-semibold uppercase tracking-wider text-[11px]">
+                <th class="pb-3 w-10">Type</th>
+                <th class="pb-3">Name</th>
+                <th class="pb-3">Modified</th>
+                <th class="pb-3">Modified by</th>
+                <th class="pb-3 text-right">Size</th>
+                <th class="pb-3 text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody id="modalFilesTableBody" class="divide-y divide-gray-100">
+              <!-- Dynamically populated files -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="bg-gray-50 border-t border-gray-200 px-6 py-3 flex items-center justify-between">
+        <div class="text-[11px] text-gray-400 flex items-center gap-1">
+          <i class="ph-bold ph-shield-check text-emerald-600 text-sm"></i> Permissions strictly inherited from target recipients only
+        </div>
+        <button onclick="closeFolderModal()" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg text-xs font-semibold transition">
+          Close
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ================= MODAL: POWER AUTOMATE EXECUTION SIMULATOR ================= -->
+  <div id="automationModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl border border-gray-200 p-6 space-y-5">
+      
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center text-xl font-bold">
+          <i class="ph-bold ph-git-commit animate-spin"></i>
+        </div>
+        <div>
+          <h3 class="font-bold text-gray-900 text-base">Power Automate Flow Triggered</h3>
+          <p class="text-xs text-gray-500">Processing announcement publication workflow</p>
+        </div>
+      </div>
+
+      <!-- Step-by-step visual tracker according to project proposal architecture -->
+      <div class="space-y-3 py-2 text-xs">
+        
+        <div id="step1" class="flex items-center justify-between p-2.5 rounded-lg bg-gray-50 border border-gray-200">
+          <div class="flex items-center gap-2.5">
+            <span class="step-icon w-5 h-5 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-[10px] font-bold">1</span>
+            <span class="font-medium text-gray-700">Save to SharePoint Announcements List (Audit Trail)</span>
+          </div>
+          <span class="step-status text-blue-600 font-semibold text-[11px]"><i class="ph-bold ph-spinner animate-spin"></i></span>
+        </div>
+
+        <div id="step2" class="flex items-center justify-between p-2.5 rounded-lg bg-gray-50 border border-gray-200 opacity-60">
+          <div class="flex items-center gap-2.5">
+            <span class="step-icon w-5 h-5 rounded-full bg-gray-200 text-gray-600 flex items-center justify-center text-[10px] font-bold">2</span>
+            <span class="font-medium text-gray-700">Create library folder & convert message to PDF</span>
+          </div>
+          <span class="step-status text-gray-400 font-medium text-[11px]">Waiting</span>
+        </div>
+
+        <div id="step3" class="flex items-center justify-between p-2.5 rounded-lg bg-gray-50 border border-gray-200 opacity-60">
+          <div class="flex items-center gap-2.5">
+            <span class="step-icon w-5 h-5 rounded-full bg-gray-200 text-gray-600 flex items-center justify-center text-[10px] font-bold">3</span>
+            <span class="font-medium text-gray-700">Set unique folder ACL (Selected users & groups only)</span>
+          </div>
+          <span class="step-status text-gray-400 font-medium text-[11px]">Waiting</span>
+        </div>
+
+        <div id="step4" class="flex items-center justify-between p-2.5 rounded-lg bg-gray-50 border border-gray-200 opacity-60">
+          <div class="flex items-center gap-2.5">
+            <span class="step-icon w-5 h-5 rounded-full bg-gray-200 text-gray-600 flex items-center justify-center text-[10px] font-bold">4</span>
+            <span class="font-medium text-gray-700">Send email notification & Microsoft Teams alert</span>
+          </div>
+          <span class="step-status text-gray-400 font-medium text-[11px]">Waiting</span>
+        </div>
+
+      </div>
+
+      <div class="text-[11px] text-gray-400 italic text-center">
+        All documents remain secured on SharePoint Online. No files attached directly to outbound notifications.
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ================= MODAL: EMAIL & TEAMS ALERT PREVIEWS (Requirement #8) ================= -->
+  <div id="notificationModal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-4xl rounded-2xl shadow-2xl border border-gray-200 overflow-hidden max-h-[90vh] flex flex-col">
+      
+      <!-- Modal Header -->
+      <div class="bg-gray-100 border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center">
+            <i class="ph-bold ph-bell-ringing text-lg"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-gray-900 text-base">Recipient Alert Simulation</h3>
+            <p class="text-xs text-gray-500">Requirement 8: Email alert & optional Microsoft Teams card preview</p>
+          </div>
+        </div>
+        <button onclick="closeNotificationModal()" class="w-8 h-8 rounded-full hover:bg-gray-200 flex items-center justify-center text-gray-500">
+          <i class="ph-bold ph-x text-lg"></i>
+        </button>
+      </div>
+
+      <!-- Preview Tabs -->
+      <div class="flex border-b border-gray-200 bg-gray-50 px-6 text-xs font-semibold">
+        <button id="tabEmailBtn" onclick="switchAlertTab('email')" class="py-3 px-4 border-b-2 border-blue-600 text-blue-600 flex items-center gap-2">
+          <i class="ph-bold ph-envelope-simple text-base"></i> Outlook Email Alert
+        </button>
+        <button id="tabTeamsBtn" onclick="switchAlertTab('teams')" class="py-3 px-4 border-b-2 border-transparent text-gray-500 hover:text-gray-800 flex items-center gap-2">
+          <i class="ph-bold ph-chats-circle text-base"></i> Microsoft Teams Alert (Optional)
+        </button>
+      </div>
+
+      <!-- Modal Content Body -->
+      <div class="p-6 overflow-y-auto custom-scroll flex-1 bg-gray-50">
+        
+        <!-- 1. Email Mockup -->
+        <div id="emailPreviewBox" class="bg-white rounded-xl border border-gray-200 shadow-sm p-6 max-w-2xl mx-auto space-y-4">
+          <div class="border-b border-gray-200 pb-4">
+            <h2 id="emailSubject" class="text-lg font-bold text-gray-900">New announcement: Holiday Schedule Q4</h2>
+            <div class="flex items-center gap-3 mt-3">
+              <div class="w-10 h-10 rounded-full bg-[#0b3964] text-white flex items-center justify-center font-bold text-xs">
+                MO
+              </div>
+              <div class="text-xs">
+                <div class="font-bold text-gray-900">[Management Office]</div>
+                <div class="text-gray-500">To: <span id="emailTo" class="font-medium text-gray-700">All Staff; Branch Managers</span> &middot; <span id="emailDate">22 Oct 2026, 2:15 PM</span></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Email Banner Card -->
+          <div class="bg-[#0b3964] text-white p-6 rounded-xl space-y-1">
+            <p class="text-xs text-blue-200 uppercase font-semibold tracking-wider">You have a new announcement on the Web Portal</p>
+            <h3 id="emailBannerTitle" class="text-xl font-bold text-white">Holiday Schedule Q4</h3>
+          </div>
+
+          <!-- Metadata table in email -->
+          <div class="grid grid-cols-2 gap-y-2 text-xs py-2 border-b border-gray-100">
+            <span class="text-gray-500 font-medium">Posted by:</span>
+            <span class="text-gray-900 font-semibold">[Management Office]</span>
+            <span class="text-gray-500 font-medium">Shared with:</span>
+            <span id="emailSharedWith" class="text-gray-900 font-semibold">All Staff, Branch Managers</span>
+            <span class="text-gray-500 font-medium">Documents:</span>
+            <span id="emailDocCount" class="text-gray-900 font-semibold">3 files (Announcement PDF + 2 attachments)</span>
+          </div>
+
+          <!-- CTA Button -->
+          <div class="pt-2">
+            <button onclick="simulateOpenFromEmail()" class="px-6 py-3 bg-[#0078d4] hover:bg-[#005a9e] text-white text-xs font-bold rounded-lg shadow transition">
+              Open on Web Portal
+            </button>
+          </div>
+
+          <p class="text-[11px] text-gray-400 leading-relaxed pt-2">
+            Please read the full announcement and documents on the Web Portal. The documents are not attached to this email and are available only to the people the announcement was shared with.
+          </p>
+        </div>
+
+        <!-- 2. Teams Mockup -->
+        <div id="teamsPreviewBox" class="hidden max-w-xl mx-auto space-y-4">
+          <!-- Teams Channel Header -->
+          <div class="bg-[#393b67] text-white px-4 py-3 rounded-t-xl text-xs font-bold flex items-center gap-2">
+            <i class="ph-fill ph-microsoft-teams-logo text-base"></i>
+            <span>Chat &middot; Announcements Flow Bot</span>
+          </div>
+
+          <!-- Teams Card -->
+          <div class="bg-white p-5 rounded-b-xl border border-gray-200 shadow-sm space-y-4">
+            <div class="flex items-start gap-3">
+              <div class="w-8 h-8 rounded-lg bg-[#0078d4] text-white flex items-center justify-center font-bold text-xs">
+                WP
+              </div>
+              <div class="flex-1">
+                <div class="flex items-center justify-between">
+                  <span class="font-bold text-xs text-gray-900">Web Portal Announcements</span>
+                  <span class="text-[10px] text-gray-400">2:15 PM</span>
+                </div>
+                <p class="text-xs text-gray-600 mt-1">New announcement for you. Please check the details on the Web Portal.</p>
+
+                <!-- Adaptive Card within Teams -->
+                <div class="mt-3 p-4 bg-gray-50 rounded-xl border border-gray-200 space-y-2">
+                  <h4 id="teamsCardTitle" class="font-bold text-gray-900 text-sm">Holiday Schedule Q4</h4>
+                  <div class="text-xs text-gray-500">
+                    From <strong>[Management Office]</strong> &middot; <span id="teamsFileCount">3 files</span>
+                  </div>
+                  <div class="pt-2">
+                    <button onclick="simulateOpenFromEmail()" class="px-4 py-2 bg-white hover:bg-gray-100 border border-blue-600 text-blue-600 rounded-lg text-xs font-bold shadow-sm transition">
+                      Open on Web Portal
+                    </button>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="bg-white border-t border-gray-200 px-6 py-3 text-right">
+        <button onclick="closeNotificationModal()" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 text-xs font-semibold rounded-lg transition">
+          Close
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ================= TOAST NOTIFICATION ================= -->
+  <div id="toast" class="fixed bottom-6 right-6 bg-[#323130] text-white px-4 py-3 rounded-xl shadow-xl flex items-center gap-3 text-xs z-50 transform translate-y-24 opacity-0 transition duration-300">
+    <i id="toastIcon" class="ph-bold ph-check-circle text-emerald-400 text-lg"></i>
+    <span id="toastMsg">Operation successful</span>
+  </div>
+
+  <!-- ================= JAVASCRIPT LOGIC & STATE ENGINE ================= -->
+  <script>
+    // Templates configured as specified in Proposal
+    const TEMPLATES = {
+      holiday: {
+        title: "Holiday Schedule Q4",
+        message: "Dear colleagues,\nPlease find attached the public holiday schedule for October to December 2026 and the branch opening arrangements.",
+        recipients: [
+          { name: "All Staff", type: "G" },
+          { name: "Branch Managers", type: "G" }
+        ],
+        files: [
+          { name: "Holiday Calendar Q4 2026.pdf", size: "212 KB", type: "pdf" },
+          { name: "Branch Opening Hours.xlsx", size: "36 KB", type: "excel" }
+        ]
+      },
+      policy: {
+        title: "New Loan Policy Effective Nov",
+        message: "Management has approved the revised credit & mortgage disbursement criteria effective 1st November 2026. All branch managers must review the operational directives attached.",
+        recipients: [
+          { name: "Branch Managers", type: "G" },
+          { name: "Department Heads", type: "G" }
+        ],
+        files: [
+          { name: "Revised Loan Policy Nov 2026.pdf", size: "340 KB", type: "pdf" },
+          { name: "Compliance Checklist.xlsx", size: "48 KB", type: "excel" }
+        ]
+      },
+      townhall: {
+        title: "Staff Town Hall Invitation",
+        message: "All colleagues are cordially invited to the upcoming Hybrid Town Hall meeting with executive management. Agenda and dial-in details are enclosed.",
+        recipients: [
+          { name: "All Staff", type: "G" }
+        ],
+        files: [
+          { name: "Town Hall Agenda & Q&A.pdf", size: "180 KB", type: "pdf" }
+        ]
+      },
+      security: {
+        title: "IT Security Reminder - Phishing Simulations",
+        message: "Please be vigilant regarding unsolicited emails containing suspicious attachments or verification links. Read the security briefing document attached.",
+        recipients: [
+          { name: "All Staff", type: "G" }
+        ],
+        files: [
+          { name: "Cybersecurity Best Practices 2026.pdf", size: "145 KB", type: "pdf" }
+        ]
+      },
+      blank: {
+        title: "",
+        message: "",
+        recipients: [],
+        files: []
+      }
+    };
+
+    // Central Data Store for Announcements (Folder Document Library)
+    let announcements = [
+      {
+        id: "ann-1",
+        folderName: "2026-10-22 Holiday Schedule Q4",
+        title: "Holiday Schedule Q4",
+        message: "Dear colleagues,\nPlease find attached the public holiday schedule for October to December 2026 and the branch opening arrangements.",
+        dateStr: "22 Oct 2026",
+        timeStr: "2:15 PM",
+        relativeDate: "Just now",
+        postedBy: "[Management Office]",
+        sharedWith: ["All Staff", "Branch Managers"],
+        files: [
+          { name: "Announcement - Holiday Schedule Q4.pdf", size: "84 KB", type: "pdf", isGenerated: true },
+          { name: "Holiday Calendar Q4 2026.pdf", size: "212 KB", type: "pdf" },
+          { name: "Branch Opening Hours.xlsx", size: "36 KB", type: "excel" }
+        ]
+      },
+      {
+        id: "ann-2",
+        folderName: "2026-10-20 New Loan Policy Effective Nov",
+        title: "New Loan Policy Effective Nov",
+        message: "Management has approved the revised credit & mortgage disbursement criteria effective 1st November 2026.",
+        dateStr: "20 Oct 2026",
+        timeStr: "10:30 AM",
+        relativeDate: "2 days ago",
+        postedBy: "[Management Office]",
+        sharedWith: ["Branch Managers"],
+        files: [
+          { name: "Announcement - New Loan Policy Effective Nov.pdf", size: "92 KB", type: "pdf", isGenerated: true },
+          { name: "Revised Loan Policy Nov 2026.pdf", size: "340 KB", type: "pdf" }
+        ]
+      },
+      {
+        id: "ann-3",
+        folderName: "2026-10-15 Q3 Results Briefing",
+        title: "Q3 Results Briefing",
+        message: "Executive presentation and operational performance metrics for the third quarter.",
+        dateStr: "15 Oct 2026",
+        timeStr: "4:00 PM",
+        relativeDate: "Oct 15",
+        postedBy: "[Management Office]",
+        sharedWith: ["Department Heads"],
+        files: [
+          { name: "Announcement - Q3 Results Briefing.pdf", size: "78 KB", type: "pdf", isGenerated: true }
+        ]
+      },
+      {
+        id: "ann-4",
+        folderName: "2026-10-09 IT Security Reminder",
+        title: "IT Security Reminder",
+        message: "Quarterly security guidance on multi-factor authentication and reporting phishing attempts.",
+        dateStr: "09 Oct 2026",
+        timeStr: "9:15 AM",
+        relativeDate: "Oct 9",
+        postedBy: "[Management Office]",
+        sharedWith: ["All Staff"],
+        files: [
+          { name: "Announcement - IT Security Reminder.pdf", size: "65 KB", type: "pdf", isGenerated: true }
+        ]
+      }
+    ];
+
+    // Current State
+    let currentRole = "management"; // 'management' | 'staff' | 'other_staff' | 'admin'
+    let currentOpenFolder = null;
+
+    // Initialize View
+    window.addEventListener('DOMContentLoaded', () => {
+      renderLibrary();
+    });
+
+    // -------------------------------------------------------------
+    // ROLE SWITCHING ENGINE (Simulates SharePoint Audience Targeting)
+    // -------------------------------------------------------------
+    function switchRole(role) {
+      currentRole = role;
+      const postCard = document.getElementById('postFormCard');
+      const roleBannerText = document.getElementById('roleBannerText');
+      const userAvatar = document.getElementById('userAvatar');
+      const userName = document.getElementById('userName');
+      const userRoleTitle = document.getElementById('userRoleTitle');
+
+      if (role === 'management') {
+        postCard.classList.remove('hidden');
+        roleBannerText.innerHTML = '<strong>Management View:</strong> Post announcement form is active. User sees all published folders and can post.';
+        userAvatar.innerText = 'MD';
+        userAvatar.className = 'w-8 h-8 rounded-full bg-blue-700 text-white flex items-center justify-center font-semibold text-xs border border-blue-400';
+        userName.innerText = 'Michael Davis';
+        userRoleTitle.innerText = 'Management (Poster)';
+      } 
+      else if (role === 'staff') {
+        // Staff belongs to 'Branch Managers' & 'All Staff'
+        postCard.classList.add('hidden');
+        roleBannerText.innerHTML = '<strong>Staff View (Branch Manager):</strong> Power Apps form hidden via Audience Targeting. Shows only announcements targeted to <em>All Staff</em> or <em>Branch Managers</em>.';
+        userAvatar.innerText = 'SO';
+        userAvatar.className = 'w-8 h-8 rounded-full bg-purple-700 text-white flex items-center justify-center font-semibold text-xs border border-purple-400';
+        userName.innerText = 'Sophia Owens';
+        userRoleTitle.innerText = 'Branch Manager (Downtown)';
+      } 
+      else if (role === 'other_staff') {
+        // General staff member - only in 'All Staff'
+        postCard.classList.add('hidden');
+        roleBannerText.innerHTML = '<strong>Staff View (General Staff):</strong> Form hidden. Only sees announcements targeted strictly to <em>All Staff</em> (e.g. Policy & Q3 Briefing hidden).';
+        userAvatar.innerText = 'JT';
+        userAvatar.className = 'w-8 h-8 rounded-full bg-teal-700 text-white flex items-center justify-center font-semibold text-xs border border-teal-400';
+        userName.innerText = 'James Turner';
+        userRoleTitle.innerText = 'Teller / Customer Service';
+      } 
+      else if (role === 'admin') {
+        postCard.classList.remove('hidden');
+        roleBannerText.innerHTML = '<strong>Portal Admin View:</strong> Has Full Control over all folders, lists, and templates across the site.';
+        userAvatar.innerText = 'AD';
+        userAvatar.className = 'w-8 h-8 rounded-full bg-amber-700 text-white flex items-center justify-center font-semibold text-xs border border-amber-400';
+        userName.innerText = 'Admin Console';
+        userRoleTitle.innerText = 'SharePoint Site Admin';
+      }
+
+      renderLibrary();
+      showToast(`Switched view to ${userRoleTitle.innerText}`);
+    }
+
+    // -------------------------------------------------------------
+    // RENDER ANNOUNCEMENTS DOCUMENT LIBRARY LIST
+    // -------------------------------------------------------------
+    function renderLibrary() {
+      const container = document.getElementById('announcementLibraryList');
+      container.innerHTML = '';
+
+      // Filter announcements based on user role permissions (Folder ACL)
+      const visibleItems = announcements.filter(item => {
+        if (currentRole === 'management' || currentRole === 'admin') return true;
+        if (currentRole === 'staff') {
+          // Branch manager can see 'All Staff' & 'Branch Managers'
+          return item.sharedWith.includes('All Staff') || item.sharedWith.includes('Branch Managers');
+        }
+        if (currentRole === 'other_staff') {
+          // General staff only sees 'All Staff'
+          return item.sharedWith.includes('All Staff');
+        }
+        return false;
+      });
+
+      document.getElementById('folderCountBadge').innerText = `${visibleItems.length} folders`;
+
+      if (visibleItems.length === 0) {
+        container.innerHTML = `
+          <div class="p-6 text-center text-gray-400 text-xs">
+            <i class="ph ph-folder-dashed text-3xl mb-2 block"></i>
+            No announcements available for your access group.
+          </div>
+        `;
+        return;
+      }
+
+      visibleItems.forEach(item => {
+        const primaryTag = item.sharedWith[0] || 'Restricted';
+        const itemEl = document.createElement('div');
+        itemEl.className = 'p-3.5 hover:bg-gray-50 flex items-center justify-between cursor-pointer transition group';
+        itemEl.onclick = () => openFolderModal(item.id);
+
+        itemEl.innerHTML = `
+          <div class="flex items-start gap-3 truncate">
+            <div class="w-9 h-9 rounded bg-amber-100/90 text-amber-700 flex items-center justify-center shrink-0 mt-0.5">
+              <i class="ph-fill ph-folder text-xl"></i>
+            </div>
+            <div class="truncate">
+              <div class="text-xs font-bold text-gray-900 group-hover:text-[#0078d4] transition truncate">
+                ${item.folderName}
+              </div>
+              <div class="text-[11px] text-gray-500 mt-0.5 flex items-center gap-2">
+                <span>${item.relativeDate}</span>
+                <span>&bull;</span>
+                <span>${item.files.length} ${item.files.length === 1 ? 'file' : 'files'}</span>
+                <span class="text-gray-400 hidden sm:inline">&bull; from ${item.postedBy}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2 shrink-0 ml-2">
+            <span class="inline-flex items-center gap-1 bg-purple-50 text-purple-700 border border-purple-200 text-[10px] font-semibold px-2 py-0.5 rounded-full">
+              <i class="ph-fill ph-lock-key text-[10px]"></i>
+              ${primaryTag}${item.sharedWith.length > 1 ? ` +${item.sharedWith.length - 1}` : ''}
+            </span>
+            <i class="ph-bold ph-caret-right text-gray-400 group-hover:text-gray-600 text-xs"></i>
+          </div>
+        `;
+
+        container.appendChild(itemEl);
+      });
+    }
+
+    // -------------------------------------------------------------
+    // TEMPLATE SELECTION ENGINE
+    // -------------------------------------------------------------
+    function applyTemplate(key) {
+      const t = TEMPLATES[key];
+      if (!t) return;
+
+      document.getElementById('postTitle').value = t.title;
+      document.getElementById('postMessage').value = t.message;
+
+      // Update pills
+      const pillsWrapper = document.getElementById('pillsWrapper');
+      pillsWrapper.innerHTML = '';
+      t.recipients.forEach(r => {
+        addRecipientBadge(r.name, r.type);
+      });
+
+      // Update attachments
+      const attachList = document.getElementById('attachmentList');
+      attachList.innerHTML = '';
+      t.files.forEach(f => {
+        addAttachmentItem(f.name, f.size, f.type);
+      });
+
+      showToast(`Applied '${key}' template`);
+    }
+
+    // -------------------------------------------------------------
+    // PEOPLE PICKER & RECIPIENT MANAGEMENT
+    // -------------------------------------------------------------
+    function showRecipientDropdown(show) {
+      const drop = document.getElementById('recipientDropdown');
+      if (show) {
+        drop.classList.remove('hidden');
+      } else {
+        setTimeout(() => drop.classList.add('hidden'), 200);
+      }
+    }
+
+    function filterRecipients(val) {
+      const query = val.toLowerCase();
+      const drop = document.getElementById('recipientDropdown');
+      drop.classList.remove('hidden');
+      const items = drop.querySelectorAll('[onclick^="addRecipient"]');
+      items.forEach(el => {
+        if (el.innerText.toLowerCase().includes(query)) {
+          el.style.display = 'flex';
+        } else {
+          el.style.display = 'none';
+        }
+      });
+    }
+
+    function addRecipient(name, type) {
+      // Check if already added
+      const pills = document.querySelectorAll('#pillsWrapper span.font-medium');
+      for (let p of pills) {
+        if (p.innerText === name) {
+          showToast(`'${name}' is already selected`);
+          document.getElementById('recipientInput').value = '';
+          showRecipientDropdown(false);
+          return;
+        }
+      }
+      addRecipientBadge(name, type);
+      document.getElementById('recipientInput').value = '';
+      showRecipientDropdown(false);
+    }
+
+    function addRecipientBadge(name, type) {
+      const pillsWrapper = document.getElementById('pillsWrapper');
+      const pill = document.createElement('span');
+      pill.className = 'inline-flex items-center gap-1 bg-blue-50 border border-blue-200 text-blue-800 rounded-full text-xs px-2.5 py-0.5';
+      pill.innerHTML = `
+        <span class="w-4 h-4 rounded-full ${type === 'G' ? 'bg-blue-600' : 'bg-emerald-600'} text-white flex items-center justify-center text-[10px] font-bold">${type}</span>
+        <span class="font-medium">${name}</span>
+        <button type="button" onclick="removeRecipient(this)" class="hover:text-blue-900 text-gray-400 ml-0.5">&times;</button>
+      `;
+      pillsWrapper.appendChild(pill);
+    }
+
+    function removeRecipient(btn) {
+      btn.closest('.inline-flex').remove();
+    }
+
+    // -------------------------------------------------------------
+    // ATTACHMENT MANAGEMENT
+    // -------------------------------------------------------------
+    function addAttachmentItem(filename, size, type) {
+      const list = document.getElementById('attachmentList');
+      const item = document.createElement('div');
+      item.className = 'attachment-item flex items-center justify-between p-2 rounded-lg bg-gray-50 border border-gray-200 text-xs';
+      
+      const isExcel = type === 'excel' || filename.endsWith('.xlsx');
+      const badgeBg = isExcel ? 'bg-emerald-600' : 'bg-red-600';
+      const badgeText = isExcel ? 'X' : 'PDF';
+
+      item.innerHTML = `
+        <div class="flex items-center gap-2 truncate">
+          <span class="w-5 h-5 rounded ${badgeBg} text-white text-[9px] font-bold flex items-center justify-center">${badgeText}</span>
+          <span class="truncate font-medium text-gray-800" data-filename="${filename}">${filename}</span>
+          <span class="text-[10px] text-gray-400">${size}</span>
+        </div>
+        <button type="button" onclick="this.closest('.attachment-item').remove()" class="text-gray-400 hover:text-red-500 p-1">
+          <i class="ph-bold ph-x"></i>
+        </button>
+      `;
+      list.appendChild(item);
+    }
+
+    function promptSimulatedUpload() {
+      const defaultName = `Document_${Math.floor(Math.random() * 900 + 100)}.pdf`;
+      addAttachmentItem(defaultName, "185 KB", "pdf");
+      showToast(`Attached ${defaultName}`);
+    }
+
+    // -------------------------------------------------------------
+    // FORM SUBMISSION & POWER AUTOMATE SIMULATION
+    // -------------------------------------------------------------
+    function handlePostSubmit(e) {
+      e.preventDefault();
+
+      const title = document.getElementById('postTitle').value.trim();
+      const message = document.getElementById('postMessage').value.trim();
+      const recipientNodes = document.querySelectorAll('#pillsWrapper span.font-medium');
+      const recipients = Array.from(recipientNodes).map(r => r.innerText);
+
+      if (!title || !message) {
+        showToast('Please fill out all required fields');
+        return;
+      }
+      if (recipients.length === 0) {
+        showToast('Please select at least one recipient group or user');
+        return;
+      }
+
+      // Read attachments
+      const attachItems = document.querySelectorAll('#attachmentList .attachment-item');
+      const files = [
+        { name: `Announcement - ${title}.pdf`, size: '84 KB', type: 'pdf', isGenerated: true }
+      ];
+      attachItems.forEach(el => {
+        const fname = el.querySelector('[data-filename]').getAttribute('data-filename');
+        const isX = fname.endsWith('.xlsx');
+        files.push({ name: fname, size: '210 KB', type: isX ? 'excel' : 'pdf' });
+      });
+
+      // Prepare date and folder title
+      const today = new Date();
+      const yyyy = today.getFullYear();
+      const mm = String(today.getMonth() + 1).padStart(2, '0');
+      const dd = String(today.getDate()).padStart(2, '0');
+      const datePrefix = `${yyyy}-${mm}-${dd}`;
+      const folderName = `${datePrefix} ${title}`;
+
+      // Show Power Automate Sequence Simulation Modal
+      simulatePowerAutomateFlow({
+        title,
+        message,
+        recipients,
+        folderName,
+        files
+      });
+    }
+
+    function simulatePowerAutomateFlow(newPostData) {
+      const modal = document.getElementById('automationModal');
+      modal.classList.remove('hidden');
+
+      // Reset steps visual state
+      for (let i = 1; i <= 4; i++) {
+        const s = document.getElementById(`step${i}`);
+        s.classList.add('opacity-60');
+        s.querySelector('.step-status').innerHTML = 'Waiting';
+      }
+
+      // Step 1: Save audit record
+      const s1 = document.getElementById('step1');
+      s1.classList.remove('opacity-60');
+      s1.querySelector('.step-status').innerHTML = '<i class="ph-bold ph-spinner animate-spin text-blue-600"></i>';
+
+      setTimeout(() => {
+        s1.querySelector('.step-status').innerHTML = '<i class="ph-bold ph-check text-emerald-600 font-bold"></i> Saved';
+        
+        // Step 2: Create Folder & PDF
+        const s2 = document.getElementById('step2');
+        s2.classList.remove('opacity-60');
+        s2.querySelector('.step-status').innerHTML = '<i class="ph-bold ph-spinner animate-spin text-blue-600"></i>';
+
+        setTimeout(() => {
+          s2.querySelector('.step-status').innerHTML = '<i class="ph-bold ph-check text-emerald-600 font-bold"></i> PDF Created';
+
+          // Step 3: Permissions
+          const s3 = document.getElementById('step3');
+          s3.classList.remove('opacity-60');
+          s3.querySelector('.step-status').innerHTML = '<i class="ph-bold ph-spinner animate-spin text-blue-600"></i>';
+
+          setTimeout(() => {
+            s3.querySelector('.step-status').innerHTML = '<i class="ph-bold ph-check text-emerald-600 font-bold"></i> ACL Set';
+
+            // Step 4: Alerts
+            const s4 = document.getElementById('step4');
+            s4.classList.remove('opacity-60');
+            s4.querySelector('.step-status').innerHTML = '<i class="ph-bold ph-spinner animate-spin text-blue-600"></i>';
+
+            setTimeout(() => {
+              s4.querySelector('.step-status').innerHTML = '<i class="ph-bold ph-check text-emerald-600 font-bold"></i> Dispatched';
+
+              // Finish flow and insert into announcements list
+              const newEntry = {
+                id: 'ann-' + Date.now(),
+                folderName: newPostData.folderName,
+                title: newPostData.title,
+                message: newPostData.message,
+                dateStr: 'Today',
+                timeStr: 'Just now',
+                relativeDate: 'Just now',
+                postedBy: '[Management Office]',
+                sharedWith: newPostData.recipients,
+                files: newPostData.files
+              };
+
+              // Insert at top of array
+              announcements.unshift(newEntry);
+              renderLibrary();
+
+              // Update Alert Previews
+              updateNotificationContent(newEntry);
+
+              setTimeout(() => {
+                modal.classList.add('hidden');
+                showToast(`Announcement "${newEntry.title}" published!`);
+              }, 600);
+
+            }, 700);
+
+          }, 700);
+
+        }, 700);
+
+      }, 700);
+    }
+
+    // -------------------------------------------------------------
+    // FOLDER MODAL & FILE VIEWER
+    // -------------------------------------------------------------
+    function openFolderModal(id) {
+      const folder = announcements.find(a => a.id === id);
+      if (!folder) return;
+      currentOpenFolder = folder;
+
+      document.getElementById('modalBreadcrumb').innerText = folder.folderName;
+      document.getElementById('modalFolderTitle').innerText = folder.folderName;
+      document.getElementById('modalPostedBy').innerText = `Posted by ${folder.postedBy}`;
+      document.getElementById('modalPostedDate').innerText = `${folder.dateStr}, ${folder.timeStr}`;
+      document.getElementById('modalMessageBody').innerText = folder.message;
+
+      // Shared pills
+      const sharedContainer = document.getElementById('modalSharedTags');
+      sharedContainer.innerHTML = '';
+      folder.sharedWith.forEach(tag => {
+        const span = document.createElement('span');
+        span.className = 'inline-flex items-center gap-1 bg-blue-100 text-blue-800 rounded-full text-[11px] px-2.5 py-0.5 font-semibold';
+        span.innerHTML = `<span class="w-3.5 h-3.5 rounded-full bg-blue-600 text-white flex items-center justify-center text-[9px]">G</span> ${tag}`;
+        sharedContainer.appendChild(span);
+      });
+
+      // Files Table
+      const tableBody = document.getElementById('modalFilesTableBody');
+      tableBody.innerHTML = '';
+
+      folder.files.forEach(f => {
+        const isX = f.type === 'excel' || f.name.endsWith('.xlsx');
+        const badgeBg = isX ? 'bg-emerald-600' : 'bg-red-600';
+        const badgeText = isX ? 'X' : 'PDF';
+
+        const row = document.createElement('tr');
+        row.className = 'hover:bg-gray-50 transition border-b border-gray-100';
+        row.innerHTML = `
+          <td class="py-3">
+            <span class="w-6 h-6 rounded ${badgeBg} text-white text-[10px] font-bold flex items-center justify-center shadow-xs">
+              ${badgeText}
+            </span>
+          </td>
+          <td class="py-3 font-semibold text-gray-900 flex items-center gap-2">
+            <span>${f.name}</span>
+            ${f.isGenerated ? '<span class="bg-gray-100 text-gray-500 text-[10px] px-1.5 py-0.5 rounded border border-gray-200">System PDF</span>' : ''}
+          </td>
+          <td class="py-3 text-gray-500">${folder.dateStr}</td>
+          <td class="py-3 text-gray-500">Announcement service</td>
+          <td class="py-3 text-right text-gray-500 font-mono">${f.size}</td>
+          <td class="py-3 text-right">
+            <button onclick="downloadMockFile('${f.name}')" class="text-[#0078d4] hover:underline font-semibold flex items-center gap-1 justify-end ml-auto">
+              <i class="ph-bold ph-download-simple"></i> Download
+            </button>
+          </td>
+        `;
+        tableBody.appendChild(row);
+      });
+
+      document.getElementById('folderModal').classList.remove('hidden');
+    }
+
+    function closeFolderModal() {
+      document.getElementById('folderModal').classList.add('hidden');
+    }
+
+    function toggleMessageDetails() {
+      const body = document.getElementById('modalMessageBody');
+      const icon = document.getElementById('msgToggleIcon');
+      if (body.classList.contains('hidden')) {
+        body.classList.remove('hidden');
+        icon.classList.remove('rotate-180');
+      } else {
+        body.classList.add('hidden');
+        icon.classList.add('rotate-180');
+      }
+    }
+
+    function downloadMockFile(name) {
+      showToast(`Downloading "${name}" from secure SharePoint store`);
+    }
+
+    // -------------------------------------------------------------
+    // NOTIFICATION ALERT MODAL (EMAIL & TEAMS)
+    // -------------------------------------------------------------
+    function openNotificationModal() {
+      document.getElementById('notificationModal').classList.remove('hidden');
+      document.getElementById('unreadBadge').classList.add('hidden');
+    }
+
+    function closeNotificationModal() {
+      document.getElementById('notificationModal').classList.add('hidden');
+    }
+
+    function switchAlertTab(tab) {
+      const emailBox = document.getElementById('emailPreviewBox');
+      const teamsBox = document.getElementById('teamsPreviewBox');
+      const btnEmail = document.getElementById('tabEmailBtn');
+      const btnTeams = document.getElementById('tabTeamsBtn');
+
+      if (tab === 'email') {
+        emailBox.classList.remove('hidden');
+        teamsBox.classList.add('hidden');
+        btnEmail.className = 'py-3 px-4 border-b-2 border-blue-600 text-blue-600 flex items-center gap-2';
+        btnTeams.className = 'py-3 px-4 border-b-2 border-transparent text-gray-500 hover:text-gray-800 flex items-center gap-2';
+      } else {
+        emailBox.classList.add('hidden');
+        teamsBox.classList.remove('hidden');
+        btnTeams.className = 'py-3 px-4 border-b-2 border-[#464775] text-[#464775] flex items-center gap-2 font-bold';
+        btnEmail.className = 'py-3 px-4 border-b-2 border-transparent text-gray-500 hover:text-gray-800 flex items-center gap-2';
+      }
+    }
+
+    function updateNotificationContent(item) {
+      document.getElementById('emailSubject').innerText = `New announcement: ${item.title}`;
+      document.getElementById('emailBannerTitle').innerText = item.title;
+      document.getElementById('emailTo').innerText = item.sharedWith.join('; ');
+      document.getElementById('emailSharedWith').innerText = item.sharedWith.join(', ');
+      document.getElementById('emailDocCount').innerText = `${item.files.length} files (Announcement PDF + ${item.files.length - 1} attachments)`;
+
+      document.getElementById('teamsCardTitle').innerText = item.title;
+      document.getElementById('teamsFileCount').innerText = `${item.files.length} files`;
+    }
+
+    function simulateOpenFromEmail() {
+      closeNotificationModal();
+      if (announcements.length > 0) {
+        openFolderModal(announcements[0].id);
+      }
+      showToast('Opened announcement folder directly via SharePoint deep link');
+    }
+
+    function refreshLibraryView() {
+      renderLibrary();
+      showToast('Announcements library refreshed');
+    }
+
+    // -------------------------------------------------------------
+    // UTILITY TOAST
+    // -------------------------------------------------------------
+    let toastTimeout = null;
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      const toastMsg = document.getElementById('toastMsg');
+      toastMsg.innerText = msg;
+
+      toast.classList.remove('translate-y-24', 'opacity-0');
+      toast.classList.add('translate-y-0', 'opacity-100');
+
+      if (toastTimeout) clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => {
+        toast.classList.add('translate-y-24', 'opacity-0');
+        toast.classList.remove('translate-y-0', 'opacity-100');
+      }, 3500);
+    }
+  </script>
+</body>
+</html

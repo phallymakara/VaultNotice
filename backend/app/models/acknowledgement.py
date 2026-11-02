@@ -41,3 +41,4 @@ class AnnouncementAcknowledgement(Base):
         "Announcement", back_populates="acknowledgements"
     )
     user: Mapped["User"] = relationship("User")
+

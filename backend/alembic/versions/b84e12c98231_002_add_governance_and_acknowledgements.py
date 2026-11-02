@@ -82,3 +82,4 @@ def downgrade() -> None:
     op.drop_table("announcement_acknowledgements")
     op.drop_column("announcements", "expires_at")
     op.drop_column("announcements", "confidentiality_level")
+
