@@ -8,7 +8,9 @@ import {
   NotificationItem,
   TemplateItem,
   UserResponse,
+  UserPersona,
 } from "@/types/api"
+import { DEFAULT_PERSONAS } from "@/constants/personas"
 
 // Default mock templates
 const DEFAULT_MOCK_TEMPLATES: TemplateItem[] = [
@@ -289,6 +291,111 @@ const DEFAULT_MOCK_ANNOUNCEMENTS: AnnouncementDetail[] = [
 
 const STORAGE_KEY = "vaultnotice_mock_announcements"
 
+export function isAnnouncementVisibleToUser(
+  announcement: AnnouncementDetail,
+  userId: string,
+  persona?: UserPersona
+): boolean {
+  const user =
+    persona ||
+    DEFAULT_PERSONAS.find((p) => p.id === userId) || {
+      id: userId,
+      name: "",
+      role: "Staff",
+      department: "",
+      groups: [],
+      can_post_announcement: false,
+    }
+
+  // 1. Management or the announcement author can always see the announcement
+  if (
+    user.can_post_announcement ||
+    user.role?.toLowerCase() === "management" ||
+    announcement.author_id === user.id
+  ) {
+    return true
+  }
+
+  const selectedRecipients = announcement.selected_recipients || []
+  const targetSummaries = (announcement.target_summary || []).map((t) => t.toLowerCase())
+
+  // 2. Check "All Staff" broadcast
+  const isAllStaff =
+    selectedRecipients.some(
+      (r) =>
+        r.id === "grp-all-staff" ||
+        r.name?.toLowerCase() === "all staff"
+    ) ||
+    targetSummaries.some((t) => t === "all staff" || t === "grp-all-staff")
+  if (isAllStaff) {
+    return true
+  }
+
+  // 3. Check direct individual user recipient (by ID or exact Name)
+  const isDirectUser =
+    selectedRecipients.some((r) => {
+      if (r.type === "USER" || r.id?.startsWith("user-")) {
+        return (
+          r.id === user.id ||
+          (r.name && r.name.toLowerCase() === user.name.toLowerCase())
+        )
+      }
+      return r.id === user.id
+    }) ||
+    targetSummaries.some(
+      (t) =>
+        t === user.id.toLowerCase() ||
+        t === user.name.toLowerCase()
+    )
+  if (isDirectUser) {
+    return true
+  }
+
+  // 4. Check group / department match
+  const userGroups = (user.groups || []).map((g) => g.toLowerCase())
+  const userDept = (user.department || "").toLowerCase()
+  const userRole = (user.role || "").toLowerCase()
+
+  for (const r of selectedRecipients) {
+    if (r.type === "GROUP" || r.id?.startsWith("grp-")) {
+      const gId = (r.id || "").toLowerCase()
+      const gName = (r.name || "").toLowerCase()
+
+      // Exact group name in user groups
+      if (userGroups.includes(gName)) return true
+
+      // Mapping group IDs to departments & roles
+      if (gId === "grp-finance" && (userDept.includes("finance") || userGroups.includes("finance department"))) return true
+      if (gId === "grp-operations" && (userDept.includes("operation") || userDept.includes("customer service") || userGroups.includes("operations team"))) return true
+      if (gId === "grp-hr" && (userDept.includes("human resources") || userGroups.includes("human resources department"))) return true
+      if (gId === "grp-it" && (userDept.includes("it") || userGroups.includes("it & cybersecurity"))) return true
+      if (gId === "grp-compliance" && (userDept.includes("compliance") || userGroups.includes("compliance & legal"))) return true
+      if (gId === "grp-credit" && (userDept.includes("credit") || userGroups.includes("credit & lending"))) return true
+      if (gId === "grp-audit" && (userDept.includes("audit") || userGroups.includes("internal audit"))) return true
+      if (gId === "grp-marketing" && (userDept.includes("marketing") || userGroups.includes("marketing & communications"))) return true
+      if (gId === "grp-branch-managers" && (userRole.includes("branch manager") || userGroups.includes("all branch managers"))) return true
+      if (gId === "grp-management" && (userRole.includes("management") || userGroups.includes("management"))) return true
+    }
+  }
+
+  // 5. Also check target_summary strings against department / role / groups
+  for (const t of targetSummaries) {
+    if (userGroups.includes(t)) return true
+    if (t.includes("finance") && userDept.includes("finance")) return true
+    if (t.includes("operation") && (userDept.includes("operation") || userDept.includes("customer service"))) return true
+    if (t.includes("human resources") && userDept.includes("human resources")) return true
+    if (t.includes("it") && (userDept.includes("it") || userDept.includes("technology"))) return true
+    if (t.includes("cybersecurity") && userDept.includes("it")) return true
+    if (t.includes("compliance") && userDept.includes("compliance")) return true
+    if (t.includes("credit") && userDept.includes("credit")) return true
+    if (t.includes("audit") && userDept.includes("audit")) return true
+    if (t.includes("marketing") && userDept.includes("marketing")) return true
+    if (t.includes("branch manager") && userRole.includes("branch manager")) return true
+  }
+
+  return false
+}
+
 class ApiClient {
   private currentUserId: string = "user-sarah"
   private announcements: AnnouncementDetail[] = []
@@ -391,8 +498,21 @@ class ApiClient {
     return DEFAULT_MOCK_TEMPLATES
   }
 
-  async getAnnouncements(limit: number = 50, offset: number = 0): Promise<AnnouncementSummary[]> {
-    const list = this.announcements.slice(offset, offset + limit)
+  async getAnnouncements(
+    limit: number = 50,
+    offset: number = 0,
+    persona?: UserPersona
+  ): Promise<AnnouncementSummary[]> {
+    const user =
+      persona ||
+      DEFAULT_PERSONAS.find((p) => p.id === this.currentUserId) ||
+      DEFAULT_PERSONAS[0]
+
+    const visibleList = this.announcements.filter((a) =>
+      isAnnouncementVisibleToUser(a, user.id, user)
+    )
+
+    const list = visibleList.slice(offset, offset + limit)
     return list.map((a) => ({
       id: a.id,
       title: a.title,
@@ -484,6 +604,9 @@ class ApiClient {
   }
 
   async postAnnouncement(formData: FormData): Promise<AnnouncementDetail> {
+    // Simulate realistic loading for announcement creation
+    await new Promise((resolve) => setTimeout(resolve, 800))
+
     const title = (formData.get("title") as string) || "New Announcement"
     const content = (formData.get("message_content") as string) || ""
     const recipientsRaw = formData.get("recipients") as string

@@ -4,7 +4,7 @@ import { AnnouncementSummary } from "@/types/api"
 interface AnnouncementsFeedWidgetProps {
   announcements: AnnouncementSummary[]
   isLoading: boolean
-  onSelectAnnouncement: (id: number) => void
+  onSelectAnnouncement?: (id: number) => void
   onSeeAll?: () => void
 }
 
@@ -129,8 +129,10 @@ export function AnnouncementsFeedWidget({
             return (
               <div
                 key={item.id}
-                onClick={() => onSelectAnnouncement(item.id)}
-                className="flex items-center justify-between gap-3 py-3 group cursor-pointer hover:bg-slate-50/80 px-2 rounded-lg transition-colors"
+                onClick={() => onSelectAnnouncement?.(item.id)}
+                className={`flex items-center justify-between gap-3 py-3 group px-2 rounded-lg transition-colors ${
+                  onSelectAnnouncement ? "cursor-pointer hover:bg-slate-50/80" : ""
+                }`}
               >
                 {/* Left: Folder icon (no filled container outside) + Title & Relative Time */}
                 <div className="flex items-center gap-3 min-w-0">

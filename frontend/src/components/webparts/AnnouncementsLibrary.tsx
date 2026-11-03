@@ -2,7 +2,6 @@ import { useState, useMemo } from "react"
 import {
   Folder,
   FolderLock,
-  Search,
   Plus,
   FileText,
   MoreHorizontal,
@@ -12,11 +11,9 @@ import {
 } from "lucide-react"
 import { useAnnouncements } from "@/hooks/useAnnouncements"
 import { usePersona } from "@/context/PersonaContext"
-import { AnnouncementFolderModal } from "./AnnouncementFolderModal"
 import { PostAnnouncementDialog } from "./PostAnnouncementDialog"
 import { AnnouncementsFeedWidget } from "./AnnouncementsFeedWidget"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
   DropdownMenu,
@@ -145,10 +142,7 @@ export function AnnouncementsLibrary({
   onSelectAnnouncement,
 }: AnnouncementsLibraryProps = {}) {
   const [viewMode, setViewMode] = useState<"dashboard" | "library">("dashboard")
-  const [selectedAnnouncementId, setSelectedAnnouncementId] = useState<number | null>(null)
-  const [isFolderModalOpen, setIsFolderModalOpen] = useState(false)
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
-  const [searchQuery, setSearchQuery] = useState("")
   const [copiedId, setCopiedId] = useState<number | null>(null)
 
   const { activePersona } = usePersona()
@@ -174,36 +168,20 @@ export function AnnouncementsLibrary({
     return Math.max(112, totalFiles + 107)
   }, [announcements])
 
-  // Filtering & Sorting
+  // Sorting
   const filteredAnnouncements = useMemo(() => {
     if (!announcements) return []
 
-    let list = [...announcements]
-
-    // Search query
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase()
-      list = list.filter(
-        (a) =>
-          a.title.toLowerCase().includes(q) ||
-          a.folder_name.toLowerCase().includes(q) ||
-          a.author_name.toLowerCase().includes(q) ||
-          (a.target_summary || []).some((t) => (FALLBACK_NAME_MAP[t] || t).toLowerCase().includes(q))
-      )
-    }
-
+    const list = [...announcements]
     // Sorting (newest first)
     list.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
 
     return list
-  }, [announcements, searchQuery])
+  }, [announcements])
 
   const handleOpenFolder = (id: number) => {
     if (onSelectAnnouncement) {
       onSelectAnnouncement(id)
-    } else {
-      setSelectedAnnouncementId(id)
-      setIsFolderModalOpen(true)
     }
   }
 
@@ -228,44 +206,7 @@ export function AnnouncementsLibrary({
     }
   }
 
-  const isNormalStaff = activePersona.role?.toLowerCase() === "staff"
-
   if (viewMode === "dashboard") {
-    // For normal staff, do not display the existing banner / CEO message placeholder
-    if (isNormalStaff) {
-      return (
-        <div className="w-full flex-1 flex flex-col min-h-[calc(100vh-8.5rem)] animate-fade-in">
-          <div className="w-full max-w-4xl mx-auto py-2 space-y-3">
-            {/* Search Field */}
-            <div className="relative w-full">
-              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
-              <Input
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search announcements..."
-                className="pl-9 h-9 text-xs sm:text-sm rounded-lg bg-card border-border/80 w-full"
-              />
-            </div>
-
-            <AnnouncementsFeedWidget
-              announcements={filteredAnnouncements}
-              isLoading={isLoading}
-              onSelectAnnouncement={handleOpenFolder}
-              onSeeAll={() => setViewMode("library")}
-            />
-          </div>
-
-          {selectedAnnouncementId && (
-            <AnnouncementFolderModal
-              announcementId={selectedAnnouncementId}
-              open={isFolderModalOpen}
-              onOpenChange={setIsFolderModalOpen}
-            />
-          )}
-        </div>
-      )
-    }
-
     return (
       <div className="w-full flex-1 flex flex-col min-h-[calc(100vh-8.5rem)] animate-fade-in">
         {/* Main 2-Column Responsive Layout matching Screenshot */}
@@ -278,25 +219,13 @@ export function AnnouncementsLibrary({
             </div>
           </div>
 
-          {/* Right Column: Search Field & New Announcement Button & Announcements Feed Widget */}
+          {/* Right Column: New Announcement Button & Announcements Feed Widget */}
           <div className="lg:col-span-5 xl:col-span-5 flex flex-col space-y-3.5 w-full">
-            {/* 1. Search Field before the New Announcement Button */}
-            <div className="flex items-center gap-2 w-full">
-              <div className="relative flex-1">
-                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
-                <Input
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search announcements..."
-                  className="pl-9 h-9 text-xs rounded-lg bg-card border-border/80 w-full"
-                />
-              </div>
-
-              {activePersona.can_post_announcement && (
+            {activePersona.can_post_announcement && (
+              <div className="flex justify-end w-full">
                 <PostAnnouncementDialog
                   open={isCreateModalOpen}
                   onOpenChange={setIsCreateModalOpen}
-                  onSuccess={(id) => handleOpenFolder(id)}
                   align="end"
                   trigger={
                     <Button
@@ -307,10 +236,10 @@ export function AnnouncementsLibrary({
                     </Button>
                   }
                 />
-              )}
-            </div>
+              </div>
+            )}
 
-            {/* 2. Announcements Feed Widget */}
+            {/* Announcements Feed Widget */}
             <AnnouncementsFeedWidget
               announcements={filteredAnnouncements}
               isLoading={isLoading}
@@ -319,14 +248,6 @@ export function AnnouncementsLibrary({
             />
           </div>
         </div>
-
-        {selectedAnnouncementId && (
-          <AnnouncementFolderModal
-            announcementId={selectedAnnouncementId}
-            open={isFolderModalOpen}
-            onOpenChange={setIsFolderModalOpen}
-          />
-        )}
       </div>
     )
   }
@@ -346,38 +267,24 @@ export function AnnouncementsLibrary({
         </Button>
       </div>
 
-      {/* 1. Action & Search Bar in One Row */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        {/* Left: New Announcement button & Search input */}
-        <div className="flex items-center gap-2.5 flex-1 max-w-xl">
-          {activePersona.can_post_announcement && (
-            <PostAnnouncementDialog
-              open={isCreateModalOpen}
-              onOpenChange={setIsCreateModalOpen}
-              onSuccess={(id) => handleOpenFolder(id)}
-              align="start"
-              trigger={
-                <Button
-                  className="bg-[#002d62] hover:bg-[#001f44] text-white font-medium h-9 px-3.5 gap-1.5 rounded-lg shrink-0 cursor-pointer transition-colors shadow-none text-xs"
-                >
-                  <Plus className="w-4 h-4" />
-                  <span>New announcement</span>
-                </Button>
-              }
-            />
-          )}
-
-          <div className="relative flex-1 max-w-sm">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
-            <Input
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search announcements..."
-              className="pl-9 h-9 text-sm rounded-lg bg-card border-border/80 w-full"
-            />
-          </div>
+      {/* 1. Action Row */}
+      {activePersona.can_post_announcement && (
+        <div className="flex items-center justify-between">
+          <PostAnnouncementDialog
+            open={isCreateModalOpen}
+            onOpenChange={setIsCreateModalOpen}
+            align="start"
+            trigger={
+              <Button
+                className="bg-[#002d62] hover:bg-[#001f44] text-white font-medium h-9 px-3.5 gap-1.5 rounded-lg shrink-0 cursor-pointer transition-colors shadow-none text-xs"
+              >
+                <Plus className="w-4 h-4" />
+                <span>New announcement</span>
+              </Button>
+            }
+          />
         </div>
-      </div>
+      )}
 
       {/* 3. Stat KPI Cards (4 in a row) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -434,21 +341,10 @@ export function AnnouncementsLibrary({
             <div className="w-12 h-12 rounded-full bg-muted text-muted-foreground flex items-center justify-center mx-auto">
               <FolderLock className="w-6 h-6" />
             </div>
-            {searchQuery ? (
-              <>
-                <h4 className="text-sm font-semibold text-foreground">No matching notices found</h4>
-                <p className="text-xs text-muted-foreground max-w-sm mx-auto">
-                  No notices match "{searchQuery}". Try adjusting your keywords or clearing filters.
-                </p>
-              </>
-            ) : (
-              <>
-                <h4 className="text-sm font-semibold text-foreground">No Announcements Available</h4>
-                <p className="text-xs text-muted-foreground max-w-sm mx-auto">
-                  You have no announcements at this time. New notices targeted to your profile or department will appear here.
-                </p>
-              </>
-            )}
+            <h4 className="text-sm font-semibold text-foreground">No Announcements Available</h4>
+            <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+              You have no announcements at this time. New notices targeted to your profile or department will appear here.
+            </p>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -619,16 +515,6 @@ export function AnnouncementsLibrary({
           </div>
         )}
       </div>
-
-
-      {/* Inside Folder Explorer Modal */}
-      {selectedAnnouncementId && (
-        <AnnouncementFolderModal
-          announcementId={selectedAnnouncementId}
-          open={isFolderModalOpen}
-          onOpenChange={setIsFolderModalOpen}
-        />
-      )}
     </div>
   )
 }

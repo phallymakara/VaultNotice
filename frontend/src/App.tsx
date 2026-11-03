@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button"
 import { UserNav } from "@/components/layout/UserNav"
 import { AnnouncementsLibrary } from "@/components/webparts/AnnouncementsLibrary"
 import { AnnouncementDetailPage } from "@/components/webparts/AnnouncementDetailPage"
-import { NotificationModal } from "@/components/webparts/NotificationModal"
 import { Lock } from "lucide-react"
 
 const PORTAL_NAV_ITEMS = [
@@ -21,7 +20,6 @@ const PORTAL_NAV_ITEMS = [
 export default function App() {
   const { activePersona } = usePersona()
   const {
-    activeTab,
     selectedAnnouncementId,
     navigateToAnnouncement,
     navigateToAnnouncementsList,
@@ -54,7 +52,7 @@ export default function App() {
             {/* Portal Header Navigation Tabs */}
             <nav className="flex items-center space-x-1 overflow-x-auto h-14 scrollbar-none">
               {PORTAL_NAV_ITEMS.map((tab) => {
-                const isActive = activePortalTab === tab.id && activeTab === "announcements"
+                const isActive = activePortalTab === tab.id
                 return (
                   <button
                     key={tab.id}
@@ -77,14 +75,8 @@ export default function App() {
             </nav>
           </div>
 
-          {/* Right: Notifications & User Profile Menu */}
+          {/* Right: User Profile Menu */}
           <div className="flex items-center space-x-2 sm:space-x-3 shrink-0">
-            <NotificationModal
-              onOpenAnnouncement={(id) => {
-                setActivePortalTab("Home")
-                navigateToAnnouncement(id)
-              }}
-            />
             <UserNav />
           </div>
         </div>
@@ -92,7 +84,7 @@ export default function App() {
 
       {/* Main Content Area */}
       <main
-        key={`${activePortalTab}-${activeTab}-${activePersona.id}-${selectedAnnouncementId ?? "list"}`}
+        key={`${activePortalTab}-${activePersona.id}-${selectedAnnouncementId ?? "list"}`}
         className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 animate-fade-in flex flex-col"
       >
         {activePortalTab !== "Home" ? (

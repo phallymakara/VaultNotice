@@ -7,7 +7,7 @@ export function useAnnouncements(limit: number = 50, offset: number = 0) {
 
   return useQuery({
     queryKey: ["announcements", activePersona.id, limit, offset],
-    queryFn: () => apiClient.getAnnouncements(limit, offset),
+    queryFn: () => apiClient.getAnnouncements(limit, offset, activePersona),
     refetchInterval: 2000,
     refetchOnWindowFocus: true,
   })
