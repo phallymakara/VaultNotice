@@ -119,11 +119,7 @@ export function AnnouncementsFeedWidget({
                 {/* Right: Recipient Badge with shortcut text and aligned */}
                 <div className="shrink-0 flex items-center justify-end pl-2">
                   <span
-                    className={`inline-flex items-center justify-center min-w-8 h-6 px-2 rounded-full text-xs font-semibold select-none transition-colors ${
-                      shortcutCode === "FD"
-                        ? "bg-blue-100 text-blue-700 border border-blue-200"
-                        : "bg-slate-100 text-slate-700 border border-slate-200"
-                    }`}
+                    className="inline-flex items-center justify-center min-w-8 h-6 px-2.5 rounded-full text-xs font-bold bg-[#004e9a] text-white select-none shadow-none"
                     title={fullTargetName}
                   >
                     {shortcutCode}

@@ -3,13 +3,11 @@ import {
   Loader2,
   Download,
   X,
-  Eye,
-  Tag,
   FileText,
-  Users,
 } from "lucide-react"
 import { useAnnouncementDetails } from "@/hooks/useAnnouncements"
 import { FileItem, AnnouncementDetail, RecipientTarget } from "@/types/api"
+import { getShortRecipientCode, getFullRecipientName } from "@/constants/shortcuts"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 
@@ -275,28 +273,6 @@ export function AnnouncementDetailPage({
   // Clean deduplicated recipients
   const recipients: string[] = Array.from(new Set(rawTargets))
 
-  // Mock Announcement Type
-  const mockType = (() => {
-    if (effectiveAnnouncement.template_name) return effectiveAnnouncement.template_name
-    const titleLower = effectiveAnnouncement.title.toLowerCase()
-    if (titleLower.includes("audit")) return "Internal Audit Notice"
-    if (titleLower.includes("memo")) return "Executive Memorandum"
-    if (titleLower.includes("directive")) return "Official Directive"
-    if (titleLower.includes("policy")) return "Policy Update"
-    if (titleLower.includes("holiday")) return "General Staff Notice"
-    return effectiveAnnouncement.confidentiality_level
-      ? `${effectiveAnnouncement.confidentiality_level} Directive`
-      : "Official Directive"
-  })()
-
-  // Mock Viewed Statistics & Readers
-  const mockViewedCount = effectiveAnnouncement.acknowledgement_count && effectiveAnnouncement.acknowledgement_count > 0
-    ? effectiveAnnouncement.acknowledgement_count
-    : 48
-  const mockTotalTarget = 52
-  const mockViewPercent = Math.min(100, Math.round((mockViewedCount / mockTotalTarget) * 100))
-  const mockViewersSample = ["Emily Tan", "Alex Vorn", "Sokha Chan", "Dara Pich", "Bopha Meng", "David Miller"]
-
   // Mock Announcement Message Content
   const mockMessage = (() => {
     if (effectiveAnnouncement.message_content && effectiveAnnouncement.message_content.trim().length > 15) {
@@ -360,56 +336,38 @@ export function AnnouncementDetailPage({
 
         {/* Grey Metadata Bar matching Screenshot */}
         <div className="bg-[#f5f6f8] rounded-xl px-4 py-3 flex flex-col lg:flex-row lg:items-center justify-between gap-3">
-          {/* Left: Shared with, Type, Viewed */}
+          {/* Left: Shared with */}
           <div className="flex items-center gap-3 flex-wrap">
             {/* Shared with */}
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-2">
               <span className="text-xs font-semibold text-slate-800 shrink-0">Shared with:</span>
-              {recipients.map((item: string, idx: number) => (
-                <span
-                  key={idx}
-                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-[#e3edfc] text-[#0b57d0]"
-                >
-                  <span className="w-4 h-4 rounded-full bg-[#0b57d0] text-white text-[10px] font-bold flex items-center justify-center shrink-0">
-                    G
-                  </span>
-                  <span>{item}</span>
-                </span>
-              ))}
-            </div>
-
-            <span className="hidden sm:inline text-slate-300">|</span>
-
-            {/* Type */}
-            <div className="flex items-center gap-1.5">
-              <span className="text-xs font-semibold text-slate-800 shrink-0">Type:</span>
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#e8f1fc] text-[#004e9a] border border-[#cbe1fb]">
-                <Tag className="w-3 h-3 text-[#005fb8]" />
-                <span>{mockType}</span>
-              </span>
-            </div>
-
-            <span className="hidden sm:inline text-slate-300">|</span>
-
-            {/* Viewed */}
-            <div className="flex items-center gap-1.5">
-              <span className="text-xs font-semibold text-slate-800 shrink-0">Viewed:</span>
-              <span className="inline-flex items-center gap-1.5 text-xs text-slate-700 font-medium bg-white px-2.5 py-0.5 rounded-full border border-slate-200">
-                <Eye className="w-3.5 h-3.5 text-[#005fb8]" />
-                <span>{mockViewedCount} viewed ({mockViewPercent}%)</span>
-              </span>
+              <div className="flex items-center gap-1.5 flex-wrap">
+                {recipients.map((item: string, idx: number) => {
+                  const shortcutCode = getShortRecipientCode(item)
+                  const fullTargetName = getFullRecipientName(item)
+                  return (
+                    <span
+                      key={idx}
+                      className="inline-flex items-center justify-center min-w-8 h-6 px-2.5 rounded-full text-xs font-bold bg-[#004e9a] text-white select-none shadow-none cursor-default"
+                      title={fullTargetName}
+                    >
+                      {shortcutCode}
+                    </span>
+                  )
+                })}
+              </div>
             </div>
           </div>
 
-          {/* Right: Posted by */}
+          {/* Right: Author & Date */}
           <div className="text-xs text-slate-500 font-normal shrink-0">
-            Posted by [{effectiveAnnouncement.author_name ? `${effectiveAnnouncement.author_name} · Management Office` : "Management Office"}] · {formattedDateTime}
+            By <span className="font-semibold text-slate-700">{effectiveAnnouncement.author_name || "Management"}</span> · {formattedDateTime}
           </div>
         </div>
 
         {/* Announcement Message Section */}
         <div className="rounded-xl border border-slate-200 bg-[#fbfbfa] p-4 sm:p-5 space-y-2.5">
-          <div className="flex items-center justify-between border-b border-slate-200/80 pb-2">
+          <div className="flex items-center justify-between border-b border-slate-200 pb-2">
             <div className="flex items-center gap-2">
               <FileText className="w-4 h-4 text-[#002d62]" />
               <h2 className="text-xs font-bold text-slate-800 uppercase tracking-wide">
@@ -423,18 +381,6 @@ export function AnnouncementDetailPage({
 
           <div className="text-xs sm:text-sm text-slate-700 leading-relaxed whitespace-pre-line font-sans">
             {mockMessage}
-          </div>
-
-          {/* Recent Viewers Row */}
-          <div className="pt-2 border-t border-slate-200/60 flex items-center gap-1.5 text-xs text-slate-500 flex-wrap">
-            <span className="font-semibold text-slate-700 flex items-center gap-1">
-              <Users className="w-3.5 h-3.5 text-slate-400" />
-              <span>Viewed by:</span>
-            </span>
-            <span>
-              {mockViewersSample.join(", ")}
-              <span className="text-slate-400"> +{Math.max(0, mockViewedCount - mockViewersSample.length)} others</span>
-            </span>
           </div>
         </div>
 
@@ -464,7 +410,7 @@ export function AnnouncementDetailPage({
                     return (
                       <tr
                         key={file.id}
-                        className="hover:bg-slate-50/80 transition-colors group cursor-pointer"
+                        className="hover:bg-slate-50 transition-colors group cursor-pointer"
                         onClick={() => handleOpenFile(file)}
                       >
                         {/* Name with Badge */}
