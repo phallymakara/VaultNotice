@@ -1,42 +1,12 @@
 import { Folder } from "lucide-react"
 import { AnnouncementSummary } from "@/types/api"
+import { getShortRecipientCode, getFullRecipientName } from "@/constants/shortcuts"
 
 interface AnnouncementsFeedWidgetProps {
   announcements: AnnouncementSummary[]
   isLoading: boolean
   onSelectAnnouncement?: (id: number) => void
   onSeeAll?: () => void
-}
-
-const FALLBACK_GROUP_NAMES: Record<string, string> = {
-  "grp-all-staff": "All Staff",
-  "grp-branch-managers": "All Branch Managers",
-  "grp-finance": "Finance Department",
-  "grp-management": "Management",
-  "grp-operations": "Operations Team",
-  "grp-hr": "Human Resources",
-  "grp-it": "IT & Cybersecurity",
-  "grp-compliance": "Compliance & Legal",
-  "grp-credit": "Credit & Lending",
-  "grp-audit": "Internal Audit",
-  "grp-marketing": "Marketing & Communications",
-  "All Branch Managers": "All Branch Managers",
-  "Finance Department": "Finance Department",
-  "Management": "Management",
-  "Operations Team": "Operations Team",
-  "All Staff": "All Staff",
-  "user-alex": "Alex Vorn",
-  "user-david": "David Miller",
-  "user-emily": "Emily Tan",
-  "user-sarah": "Sarah Lin",
-  "user-sreyneath": "Sreyneath Keo",
-  "user-sokha": "Sokha Chan",
-  "user-dara": "Dara Pich",
-  "user-bopha": "Bopha Meng",
-  "user-vichea": "Vichea Chea",
-  "user-kalyan": "Kalyan Roeun",
-  "user-rithy": "Rithy Sen",
-  "user-sovann": "Sovann Kong",
 }
 
 function cleanFolderName(folderName?: string, title?: string, createdAt?: string): string {
@@ -48,14 +18,6 @@ function cleanFolderName(folderName?: string, title?: string, createdAt?: string
     return `${datePrefix} ${title}`
   }
   return title || "Announcement"
-}
-
-function getPrimaryTarget(targetSummary?: string[]): string {
-  if (!targetSummary || targetSummary.length === 0) {
-    return "All Staff"
-  }
-  const first = targetSummary[0]
-  return FALLBACK_GROUP_NAMES[first] || first
 }
 
 function formatRelativeTime(dateString: string): string {
@@ -122,7 +84,9 @@ export function AnnouncementsFeedWidget({
               item.title,
               item.created_at
             )
-            const primaryAudience = getPrimaryTarget(item.target_summary)
+            const rawTarget = (item.target_summary && item.target_summary.length > 0) ? item.target_summary[0] : "All Staff"
+            const shortcutCode = getShortRecipientCode(rawTarget)
+            const fullTargetName = getFullRecipientName(rawTarget)
             const relativeTime = formatRelativeTime(item.created_at)
             const fileCount = item.attachment_count || 1
 
@@ -134,25 +98,35 @@ export function AnnouncementsFeedWidget({
                   onSelectAnnouncement ? "cursor-pointer hover:bg-slate-50/80" : ""
                 }`}
               >
-                {/* Left: Folder icon (no filled container outside) + Title & Relative Time */}
-                <div className="flex items-center gap-3 min-w-0">
+                {/* Left: Folder icon + Title & Relative Time */}
+                <div className="flex items-center gap-3 min-w-0 flex-1">
                   <div className="w-7 h-7 flex items-center justify-center shrink-0">
                     <Folder className="w-5 h-5 text-amber-500 fill-amber-400" />
                   </div>
-                  <div className="min-w-0">
-                    <p className="text-xs sm:text-sm font-semibold text-slate-900 truncate group-hover:text-[#005fb8] transition-colors leading-snug">
+                  <div className="min-w-0 flex-1">
+                    <p
+                      className="text-xs sm:text-sm font-semibold text-slate-900 truncate max-w-full leading-snug group-hover:text-[#005fb8] transition-colors"
+                      title={folderDisplayName}
+                    >
                       {folderDisplayName}
                     </p>
-                    <p className="text-[11px] text-slate-500 font-normal mt-0.5">
+                    <p className="text-[11px] text-slate-500 font-normal mt-0.5 truncate">
                       {relativeTime} · {fileCount} {fileCount === 1 ? "file" : "files"}
                     </p>
                   </div>
                 </div>
 
-                {/* Right: Recipient Pill (no prefix icon) */}
-                <div className="shrink-0">
-                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-[#e6e8eb] text-slate-700">
-                    <span>{primaryAudience}</span>
+                {/* Right: Recipient Badge with shortcut text and aligned */}
+                <div className="shrink-0 flex items-center justify-end pl-2">
+                  <span
+                    className={`inline-flex items-center justify-center min-w-8 h-6 px-2 rounded-full text-xs font-semibold select-none transition-colors ${
+                      shortcutCode === "FD"
+                        ? "bg-blue-100 text-blue-700 border border-blue-200"
+                        : "bg-slate-100 text-slate-700 border border-slate-200"
+                    }`}
+                    title={fullTargetName}
+                  >
+                    {shortcutCode}
                   </span>
                 </div>
               </div>
