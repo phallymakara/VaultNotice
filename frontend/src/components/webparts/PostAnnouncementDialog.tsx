@@ -293,14 +293,9 @@ export function PostAnnouncementCard({
           <div className="text-white shrink-0">
             <Megaphone className="w-5 h-5 text-white stroke-[2.2]" />
           </div>
-          <div>
-            <h3 className="text-base font-bold text-white tracking-tight leading-tight">
-              Post announcement
-            </h3>
-            <p className="text-xs text-blue-100/80 font-normal">
-              Visible to management only
-            </p>
-          </div>
+          <h3 className="text-base font-bold text-white tracking-tight leading-tight">
+            Post announcement
+          </h3>
         </div>
         {showCloseButton && onClose && (
           <button

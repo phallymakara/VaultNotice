@@ -30,6 +30,8 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { getShortRecipientCode, getFullRecipientName } from "@/constants/shortcuts"
+import { NEWS_ITEMS, GENERAL_ANNOUNCEMENTS_ITEMS } from "@/constants/portalSections"
+import { PortalFeedSection } from "./PortalFeedSection"
 import picture1 from "@/assets/img/picture-1.webp"
 
 function getRecipientItems(targets?: string[]) {
@@ -117,7 +119,7 @@ export function AnnouncementsLibrary({
 
   if (viewMode === "dashboard") {
     return (
-      <div className="w-full flex-1 flex flex-col min-h-[calc(100vh-8.5rem)] animate-fade-in">
+      <div className="w-full flex-1 flex flex-col min-h-[calc(100vh-8.5rem)] animate-fade-in pb-8">
         {/* Main 2-Column Responsive Layout matching Screenshot */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full items-start">
           {/* Left Column: CEO Message Banner */}
@@ -131,34 +133,46 @@ export function AnnouncementsLibrary({
             </div>
           </div>
 
-          {/* Right Column: New Announcement Button & Announcements Feed Widget */}
-          <div className="lg:col-span-5 xl:col-span-5 flex flex-col space-y-3.5 w-full">
-            {activePersona.can_post_announcement && (
-              <div className="flex justify-end w-full">
-                <PostAnnouncementDialog
-                  open={isCreateModalOpen}
-                  onOpenChange={setIsCreateModalOpen}
-                  align="end"
-                  trigger={
-                    <Button
-                      className="bg-[#002d62] hover:bg-[#001f44] text-white font-medium h-9 px-3.5 gap-1.5 rounded-lg shrink-0 cursor-pointer transition-colors shadow-none text-xs"
-                    >
-                      <Plus className="w-4 h-4" />
-                      <span>New announcement</span>
-                    </Button>
-                  }
-                />
-              </div>
-            )}
-
-            {/* Announcements Feed Widget */}
+          {/* Right Column: Announcements Feed Widget */}
+          <div className="lg:col-span-5 xl:col-span-5 flex flex-col w-full">
             <AnnouncementsFeedWidget
               announcements={filteredAnnouncements}
               isLoading={isLoading}
               onSelectAnnouncement={handleOpenFolder}
               onSeeAll={() => setViewMode("library")}
+              headerAction={
+                activePersona.can_post_announcement ? (
+                  <PostAnnouncementDialog
+                    open={isCreateModalOpen}
+                    onOpenChange={setIsCreateModalOpen}
+                    align="end"
+                    trigger={
+                      <Button
+                        className="bg-[#002d62] hover:bg-[#001f44] text-white font-medium h-7 px-2.5 gap-1 rounded-md shrink-0 cursor-pointer transition-colors shadow-none text-xs"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                        <span>Announcement</span>
+                      </Button>
+                    }
+                  />
+                ) : undefined
+              }
             />
           </div>
+        </div>
+
+        {/* Centered News & General Announcements Sections */}
+        <div className="w-full max-w-5xl mx-auto pt-8 space-y-10">
+          <PortalFeedSection
+            title="News"
+            searchPlaceholder="Search News..."
+            items={NEWS_ITEMS}
+          />
+          <PortalFeedSection
+            title="General Announcements"
+            searchPlaceholder="Search General Announcements..."
+            items={GENERAL_ANNOUNCEMENTS_ITEMS}
+          />
         </div>
       </div>
     )

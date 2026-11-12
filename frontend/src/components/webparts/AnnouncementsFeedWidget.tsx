@@ -1,3 +1,4 @@
+import { ReactNode } from "react"
 import { Folder } from "lucide-react"
 import { AnnouncementSummary } from "@/types/api"
 import { getShortRecipientCode, getFullRecipientName } from "@/constants/shortcuts"
@@ -7,6 +8,7 @@ interface AnnouncementsFeedWidgetProps {
   isLoading: boolean
   onSelectAnnouncement?: (id: number) => void
   onSeeAll?: () => void
+  headerAction?: ReactNode
 }
 
 function cleanFolderName(folderName?: string, title?: string, createdAt?: string): string {
@@ -43,32 +45,35 @@ export function AnnouncementsFeedWidget({
   isLoading,
   onSelectAnnouncement,
   onSeeAll,
+  headerAction,
 }: AnnouncementsFeedWidgetProps) {
   return (
     <div className="w-full rounded-xl border border-slate-200 bg-white p-5 shadow-none flex flex-col">
-      {/* Header: Title & See all */}
-      <div className="flex items-center justify-between pb-0.5">
-        <h3 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">
-          Announcements
-        </h3>
-        {onSeeAll && (
-          <button
-            type="button"
-            onClick={onSeeAll}
-            className="text-xs font-semibold text-[#005fb8] hover:text-[#004280] hover:underline cursor-pointer"
-          >
-            See all
-          </button>
+      {/* Header: Title + See all on left, optional action button aligned at right end */}
+      <div className="flex items-start justify-between gap-2 pb-1">
+        <div className="min-w-0">
+          <h3 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">
+            Announcements
+          </h3>
+          {onSeeAll && (
+            <button
+              type="button"
+              onClick={onSeeAll}
+              className="mt-0.5 text-xs font-semibold text-[#005fb8] hover:text-[#004280] hover:underline cursor-pointer"
+            >
+              See all
+            </button>
+          )}
+        </div>
+        {headerAction && (
+          <div className="shrink-0">
+            {headerAction}
+          </div>
         )}
       </div>
 
-      {/* Subtitle */}
-      <p className="text-xs text-slate-500 font-normal">
-        Newest first · only those shared with you
-      </p>
-
       {/* Announcements List Rows (Scrollable Container) */}
-      <div className="mt-4 divide-y divide-slate-100 max-h-[440px] overflow-y-auto pr-1">
+      <div className="mt-3 divide-y divide-slate-100 max-h-[440px] overflow-y-auto pr-1">
         {isLoading ? (
           <div className="py-8 text-center text-xs text-slate-400">
             Loading announcements...

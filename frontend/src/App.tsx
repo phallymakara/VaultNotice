@@ -37,8 +37,8 @@ export default function App() {
       {/* Top Navigation Bar with Portal Tabs */}
       <header className="sticky top-0 z-40 w-full border-b border-border bg-background/95 backdrop-blur-xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between gap-4">
-          {/* Left: Brand & Portal Navigation */}
-          <div className="flex items-center space-x-6 min-w-0 flex-1">
+          {/* Left: Brand Logo */}
+          <div className="flex items-center shrink-0 xl:flex-1">
             <button
               type="button"
               onClick={handleLogoClick}
@@ -51,35 +51,35 @@ export default function App() {
                 className="h-6 sm:h-7 w-auto object-contain select-none"
               />
             </button>
-
-            {/* Portal Header Navigation Tabs */}
-            <nav className="flex items-center space-x-1 overflow-x-auto h-14 scrollbar-none">
-              {PORTAL_NAV_ITEMS.map((tab) => {
-                const isActive = activePortalTab === tab.id
-                return (
-                  <button
-                    key={tab.id}
-                    onClick={() => {
-                      setActivePortalTab(tab.id)
-                      if (tab.id === "Home") {
-                        navigateToAnnouncementsList()
-                      }
-                    }}
-                    className={`h-14 px-3 flex items-center text-xs sm:text-sm font-medium whitespace-nowrap border-b-2 transition-colors cursor-pointer ${
-                      isActive
-                        ? "border-[#002d62] text-slate-900 font-semibold"
-                        : "border-transparent text-slate-600 hover:text-slate-900 hover:border-slate-300"
-                    }`}
-                  >
-                    {tab.label}
-                  </button>
-                )
-              })}
-            </nav>
           </div>
 
+          {/* Center: Portal Header Navigation Tabs */}
+          <nav className="flex items-center lg:justify-center space-x-1 overflow-x-auto h-14 scrollbar-none min-w-0 flex-1 xl:flex-none">
+            {PORTAL_NAV_ITEMS.map((tab) => {
+              const isActive = activePortalTab === tab.id
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => {
+                    setActivePortalTab(tab.id)
+                    if (tab.id === "Home") {
+                      navigateToAnnouncementsList()
+                    }
+                  }}
+                  className={`h-14 px-3 flex items-center text-xs sm:text-sm font-medium whitespace-nowrap border-b-2 transition-colors cursor-pointer ${
+                    isActive
+                      ? "border-[#002d62] text-slate-900 font-semibold"
+                      : "border-transparent text-slate-600 hover:text-slate-900 hover:border-slate-300"
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              )
+            })}
+          </nav>
+
           {/* Right: User Profile Menu */}
-          <div className="flex items-center space-x-2 sm:space-x-3 shrink-0">
+          <div className="flex items-center justify-end space-x-2 sm:space-x-3 shrink-0 xl:flex-1">
             <UserNav />
           </div>
         </div>
