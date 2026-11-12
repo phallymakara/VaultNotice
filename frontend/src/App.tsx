@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { UserNav } from "@/components/layout/UserNav"
 import { AnnouncementsLibrary } from "@/components/webparts/AnnouncementsLibrary"
 import { AnnouncementDetailPage } from "@/components/webparts/AnnouncementDetailPage"
-import { Lock } from "lucide-react"
+import headerLogo from "@/assets/img/header-logo.webp"
 
 const PORTAL_NAV_ITEMS = [
   { id: "Home", label: "Home" },
@@ -40,13 +40,16 @@ export default function App() {
           {/* Left: Brand & Portal Navigation */}
           <div className="flex items-center space-x-6 min-w-0 flex-1">
             <button
+              type="button"
               onClick={handleLogoClick}
-              className="flex items-center space-x-2.5 hover:opacity-90 transition-opacity cursor-pointer shrink-0"
+              aria-label="Woori Bank Home"
+              className="flex items-center hover:opacity-90 transition-opacity cursor-pointer shrink-0"
             >
-              <div className="h-8 w-8 rounded-lg bg-primary text-primary-foreground flex items-center justify-center shadow-none">
-                <Lock className="w-4 h-4" />
-              </div>
-              <span className="font-semibold text-base tracking-tight hidden sm:inline">VaultNotice</span>
+              <img
+                src={headerLogo}
+                alt="Woori Bank"
+                className="h-6 sm:h-7 w-auto object-contain select-none"
+              />
             </button>
 
             {/* Portal Header Navigation Tabs */}

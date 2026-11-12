@@ -30,6 +30,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { getShortRecipientCode, getFullRecipientName } from "@/constants/shortcuts"
+import ceoBanner from "@/assets/img/ceo-banner.webp"
 
 function getRecipientItems(targets?: string[]) {
   if (!targets || targets.length === 0) {
@@ -119,11 +120,14 @@ export function AnnouncementsLibrary({
       <div className="w-full flex-1 flex flex-col min-h-[calc(100vh-8.5rem)] animate-fade-in">
         {/* Main 2-Column Responsive Layout matching Screenshot */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full items-start">
-          {/* Left Column: Existing banner (unchanged) / CEO Message carousel */}
+          {/* Left Column: CEO Message Banner */}
           <div className="lg:col-span-7 xl:col-span-7 flex flex-col">
-            <div className="w-full min-h-[580px] border-2 border-dashed border-slate-300 rounded-xl bg-slate-50/50 p-8 flex flex-col items-center justify-center text-center">
-              <p className="text-base font-semibold text-slate-700">Existing banner (unchanged)</p>
-              <p className="text-sm text-slate-500 mt-1.5">CEO Message carousel stays as it is today</p>
+            <div className="w-full rounded-xl border border-slate-200 bg-white overflow-hidden">
+              <img
+                src={ceoBanner}
+                alt="CEO Message"
+                className="w-full h-auto block select-none"
+              />
             </div>
           </div>
 
