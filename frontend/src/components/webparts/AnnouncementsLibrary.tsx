@@ -30,7 +30,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { getShortRecipientCode, getFullRecipientName } from "@/constants/shortcuts"
-import ceoBanner from "@/assets/img/ceo-banner.webp"
+import picture1 from "@/assets/img/picture-1.webp"
 
 function getRecipientItems(targets?: string[]) {
   if (!targets || targets.length === 0) {
@@ -124,7 +124,7 @@ export function AnnouncementsLibrary({
           <div className="lg:col-span-7 xl:col-span-7 flex flex-col">
             <div className="w-full rounded-xl border border-slate-200 bg-white overflow-hidden">
               <img
-                src={ceoBanner}
+                src={picture1}
                 alt="CEO Message"
                 className="w-full h-auto block select-none"
               />
